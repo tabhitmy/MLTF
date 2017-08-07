@@ -88,7 +88,11 @@ def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
         1: ko1processor1,
         2: ko1processor2,
         3: ko1processor3,
-        4: ko1processor4
+        4: ko1processor4,
+        5: ko1processor5,
+        6: ko1processor6,
+        7: ko1processor7,
+        8: ko1processor8
     }
 
     y_tra, X_tra, y_val, X_val, weights = kick_off_no1_switcher[GVal.getPARA('kick_off_no1_PARA')](y_tra, X_tra, y_val, X_val, weights, index_no)
@@ -100,6 +104,12 @@ def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
 
 
 def ko1processor0(y_tra, X_tra, y_val, X_val, weights, index_no):
+    y_tra = np.delete(y_tra, index_no[0][1], axis=0)
+    X_tra = np.delete(X_tra, index_no[0][1], axis=0)
+    weights = np.delete(weights, index_no[0][1], axis=0)
+
+    y_val = np.delete(y_val, index_no[1][1], axis=0)
+    X_val = np.delete(X_val, index_no[1][1], axis=0)
 
     return y_tra, X_tra, y_val, X_val, weights
 
@@ -107,9 +117,9 @@ def ko1processor0(y_tra, X_tra, y_val, X_val, weights, index_no):
 def ko1processor1(y_tra, X_tra, y_val, X_val, weights, index_no):
     y_tra = np.delete(y_tra, index_no[0][1], axis=0)
     X_tra = np.delete(X_tra, index_no[0][1], axis=0)
-    y_val = np.delete(y_val, index_no[1][1], axis=0)
-    X_val = np.delete(X_val, index_no[1][1], axis=0)
     weights = np.delete(weights, index_no[0][1], axis=0)
+
+    y_val[np.nonzero(y_val == 1)[0]] = 0
 
     return y_tra, X_tra, y_val, X_val, weights
 
@@ -119,24 +129,48 @@ def ko1processor2(y_tra, X_tra, y_val, X_val, weights, index_no):
     X_tra = np.delete(X_tra, index_no[0][1], axis=0)
     weights = np.delete(weights, index_no[0][1], axis=0)
 
-    y_val[np.nonzero(y_val == 1)[0]] = 0
-
     return y_tra, X_tra, y_val, X_val, weights
 
 
 def ko1processor3(y_tra, X_tra, y_val, X_val, weights, index_no):
-    y_tra = np.delete(y_tra, index_no[0][1], axis=0)
-    X_tra = np.delete(X_tra, index_no[0][1], axis=0)
-    weights = np.delete(weights, index_no[0][1], axis=0)
+
+    y_val = np.delete(y_val, index_no[1][1], axis=0)
+    X_val = np.delete(X_val, index_no[1][1], axis=0)
 
     return y_tra, X_tra, y_val, X_val, weights
 
 
 def ko1processor4(y_tra, X_tra, y_val, X_val, weights, index_no):
-    y_tra[np.nonzero(y_tra == 1)[0]] = 0
-    y_tra[np.nonzero(y_tra > 0)[0]] = 1
 
     y_val[np.nonzero(y_val == 1)[0]] = 0
+
+    return y_tra, X_tra, y_val, X_val, weights
+
+
+def ko1processor5(y_tra, X_tra, y_val, X_val, weights, index_no):
+
+    return y_tra, X_tra, y_val, X_val, weights
+
+
+def ko1processor6(y_tra, X_tra, y_val, X_val, weights, index_no):
+    y_tra[np.nonzero(y_tra == 1)[0]] = 0
+
+    y_val = np.delete(y_val, index_no[1][1], axis=0)
+    X_val = np.delete(X_val, index_no[1][1], axis=0)
+
+    return y_tra, X_tra, y_val, X_val, weights
+
+
+def ko1processor7(y_tra, X_tra, y_val, X_val, weights, index_no):
+    y_tra[np.nonzero(y_tra == 1)[0]] = 0
+
+    y_val[np.nonzero(y_val == 1)[0]] = 0
+
+    return y_tra, X_tra, y_val, X_val, weights
+
+
+def ko1processor8(y_tra, X_tra, y_val, X_val, weights, index_no):
+    y_tra[np.nonzero(y_tra == 1)[0]] = 0
 
     return y_tra, X_tra, y_val, X_val, weights
 

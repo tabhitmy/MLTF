@@ -2,6 +2,7 @@
 
 import numpy as np
 import GVal
+from toolkitJ import cell2dmatlab_jsp
 
 
 def initializationProcess():
@@ -11,26 +12,6 @@ def initializationProcess():
     # GVal.setPARA('prefix_PARA', localprefix)
 
     return GVal.getPARA('prefix_PARA')
-
-
-def processCodeEncoderConvertor(inp):
-    output = [0] * inp.shape[0]
-    decimal_bit = 0
-    output_bit = 0
-    for i in inp:
-        if np.logical_or(type(i) == float, type(i) == np.float64):
-            decimal_bit = max((decimal_bit, (len(str(i)) - len(str(int(i)))) - 1))
-
-    for i in range(len(inp)):
-        if np.logical_or(type(inp[i]) == float, type(inp[i]) == np.float64):
-            output[i] = int(str(inp[i] * (10**decimal_bit))[:-2])
-        else:
-            output[i] = inp[i]
-
-    for i in output:
-        output_bit = max((output_bit, len(str(i))))
-
-    return output, output_bit, decimal_bit
 
 
 def controlPanel():
@@ -61,11 +42,11 @@ def controlPanel():
     GVal.setPARA(
         'classifier_list_PARA',
         [
-            21,
-            24,
-            25,
-            30,
-            23,
+            # 21,
+            # 24,
+            # 25,
+            # 30,
+            # 23,
             32
 
         ])
@@ -100,16 +81,11 @@ def controlPanel():
     # 32 - Random Forest
     ########################################
 
-    ### [ Custom Loop Parameter] ###############
-    GVal.setPARA('loopPARA_name', 'random_seed_PARA')
-    # loopPARA_valuelist_raw = np.array([0.2])
-    loopPARA_valuelist_raw = np.arange(16, 36, 1)
-    loopPARA_valuelist, loopPARA_bit, loopPARA_decibit = processCodeEncoderConvertor(loopPARA_valuelist_raw)
-    GVal.setPARA('loopPARA_valuelist_PARA', loopPARA_valuelist)
-    GVal.setPARA('loopPARA_bit_PARA', loopPARA_bit)
-    GVal.setPARA('loopPARA_decibit_PARA', loopPARA_decibit)
     ########################################
 
+    GVal.initLoopPARA('random_seed_PARA', np.arange(20, 22, 1))
+    GVal.initLoopPARA('kick_off_no1_PARA', np.arange(8))
+    GVal.initLoopPARA('noconfident_frame_process_PARA',  np.arange(6))
     # Flags
     FLAG = {}
     FLAG['data_prepare_flag'] = 0
@@ -121,15 +97,20 @@ def controlPanel():
     GVal.setPARA('weights_on_PARA', 0)
     GVal.setPARA('beta_PARA', 1.5)
     #########################################
-    GVal.setPARA('kick_off_no1_PARA', 0)
-    # 0 - Do nothing
-    # 1 - Clean label 1(CSS7) both training and validation set
-    # 2 - Clean label 1 on training, set label 1 as label 0(Negative Sleep) in validation
-    # 3 - Clean label 1 on training only. label 1 still be label 1 in validation
-    # 4 - Set label 1 as label 0 on both training and validation set.
+    GVal.setPARA('kick_off_no1_PARA', 7)
+    # 0 - Train: [del] || Validation: [del]
+    # 1 - Train: [del] || Validation: [0]
+    # 2 - Train: [del] || Validation: [1]
+    # 3 - Train: [1] || Validation: [del]
+    # 4 - Train: [1] || Validation: [0]
+    # 5 - Train: [1] || Validation: [1]
+    # 6 - Train: [0] || Validation: [del]
+    # 7 - Train: [0] || Validation: [0]
+    # 8 - Train: [0] || Validation: [1]
+
     #########################################
     FLAG['label_process_flag'] = 1
-    GVal.setPARA('noconfident_frame_process_PARA', 5)
+    GVal.setPARA('noconfident_frame_process_PARA', 2)
     # 0 - Remain the current label (Do nothing)
     # 1 - Set all not confident frame as label 7 and remain all
     # 2 - Set all not confident frame as label 0 and remain all
@@ -216,40 +197,74 @@ def controlPanel():
 def processCodeEncoder():
     recording_index_list = GVal.getPARA('recording_index_list_PARA')
     classifier_list = GVal.getPARA('classifier_list_PARA')
-    loopPARA_valuelist = GVal.getPARA('loopPARA_valuelist_PARA')
-    loopPARA_bit = GVal.getPARA('loopPARA_bit_PARA')
+
+    loopPARA_cache = GVal.getLoopPARA_cache()[0]
+
+    loopPARA_amount = len(loopPARA_cache)
+    GVal.setPARA('loopPARA_amount_PARA', loopPARA_amount)
+    loopPARA_totalsize = 1
+    loopPARA_bitsize = np.zeros([loopPARA_amount, 1])
+    loopPARA_namecache = cell2dmatlab_jsp([loopPARA_amount, 1], 2, [])
+
+    j = 0
+    for loopPARA_name in loopPARA_cache.keys():
+        loopPARA_totalsize *= loopPARA_cache[loopPARA_name][1]
+        loopPARA_bitsize[j] = loopPARA_cache[loopPARA_name][1]
+        loopPARA_namecache[j][0] = loopPARA_name
+        j += 1
+
+    # Important processCode Para 1.
+    GVal.setPARA('loopPARA_namecache_PARA', loopPARA_namecache)
+    loopPARA_codepool = cell2dmatlab_jsp([loopPARA_totalsize, loopPARA_amount], 2, [])
+
+    k = cell2dmatlab_jsp([loopPARA_amount], 1, [0])
+
+    for i in range(loopPARA_totalsize):
+        for jj in range(loopPARA_amount):
+            loopPARA_codepool[i][jj] = loopPARA_cache[loopPARA_namecache[jj][0]][0][k[jj]][0]
+            if k[jj] < loopPARA_bitsize[jj] - 1:
+                k[jj][0] += 1
+            else:
+                k[jj][0] = 0
+
+    # Important processCode Para 2.
+    GVal.setPARA('loopPARA_codepool_PARA', loopPARA_codepool)
+    print('### Loop Para Pool Size: [' + str(loopPARA_totalsize) + ', ' + str(loopPARA_amount) + '] ([Total Loop,Loop Parameter amount])')
+
     process_code_pack = []
     for recording_index_list_lplb in np.arange(len(recording_index_list)):
         for classifier_list_lplb in np.arange(len(classifier_list)):
-            for loopPARA_valuelist_lplb in np.arange(len(loopPARA_valuelist)):
-                code_temp = int(1e0 * classifier_list[classifier_list_lplb] + 1e3 * (recording_index_list_lplb + 1) + 1e5 * loopPARA_valuelist[loopPARA_valuelist_lplb])
+            for loopPARA_serialnum in range(loopPARA_totalsize):
+                code_temp = int(1e0 * classifier_list[classifier_list_lplb] +
+                                1e3 * (recording_index_list_lplb + 1) +
+                                1e5 * loopPARA_amount +
+                                1e7 * loopPARA_serialnum +
+                                1e11 * 1)
                 process_code_pack.append(code_temp)
 
     return process_code_pack
 
 
-def processCodeDecoder(process_code, decoder_update_flag):
+def processCodeDecoder(process_code):
+    print('### Input process_code is: [' + str(process_code) + ']')
     process_code_str = str(process_code)
     classifier_num_temp = int(process_code_str[-3:])
     recording_index_list_selectserial = int(process_code_str[-5: -3]) - 1
     recording_index_list = GVal.getPARA('recording_index_list_PARA')
 
-    loopPARA_bit = GVal.getPARA('loopPARA_bit_PARA')
-    loopPARA_decibit = GVal.getPARA('loopPARA_decibit_PARA')
-    if not process_code_str[-5 - loopPARA_bit:-5]:
-        loopPARA_value_index = 0
-    else:
-        loopPARA_value_index = float(process_code_str[-5 - loopPARA_bit:-5])
+    loopPARA_amount = GVal.getPARA('loopPARA_amount_PARA')
+    loopPARA_codepool = GVal.getPARA('loopPARA_codepool_PARA')
+    loopPARA_namecache = GVal.getPARA('loopPARA_namecache_PARA')
 
-    GVal.setPARA(GVal.getPARA('loopPARA_name'), loopPARA_value_index / (10**loopPARA_decibit))
+    loopPARA_serialnum = int(process_code_str[-11:-7])
+    for loopPARA_num in range(loopPARA_amount):
+        print('### Looping Parameter (' + str(loopPARA_num) + '/' + str(loopPARA_amount) + '): [' + loopPARA_namecache[loopPARA_num][0] + '], with value set: [' + str(loopPARA_codepool[loopPARA_serialnum][loopPARA_num]) + ']')
+        GVal.setPARA(loopPARA_namecache[loopPARA_num][0], loopPARA_codepool[loopPARA_serialnum][loopPARA_num])
 
     select_index_temp = recording_index_list[recording_index_list_selectserial]
-    if decoder_update_flag:
-        GVal.setPARA('classifier_num_PARA', classifier_num_temp)
-        GVal.setPARA('select_index_PARA', select_index_temp)
-        print('### Decoder Success! New parameters: [select_index] and [classifier_num] are updated into the workspace! ')
-    else:
-        print('### Decoder Success! Output parameters: [select_index] and [classifier_num]  ')
-        print('### Caution! The parameters are not updated into the workspace! ')
+
+    GVal.setPARA('classifier_num_PARA', classifier_num_temp)
+    GVal.setPARA('select_index_PARA', select_index_temp)
+    print('######## [ Decoder Success! ] ########')
 
     return select_index_temp, classifier_num_temp

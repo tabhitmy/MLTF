@@ -198,7 +198,7 @@ def featurePlotting_NFDA(label_all, online_fea_all):
 
 
 def mainProcesser(process_code):
-    select_index, classifier_num = processCodeDecoder(process_code, 1)
+    select_index, classifier_num = processCodeDecoder(process_code)
 
     online_fea_selectindex = GVal.getPARA('online_fea_selectindex_PARA')
     noise_label_index = GVal.getPARA('noise_label_index_PARA')
@@ -350,8 +350,9 @@ if __name__ == "__main__":
     # [Tempory Code]Now saving the res data into a pickle file.
     #   And read in picturing and plotting. Later this will be moduled
     #   and parameters can be tuned in control panel
-    with open('res.pickle', 'wb') as outfile:
-        pickle.dump(res, outfile)
+
+    # with open('res.pickle', 'wb') as outfile:
+    #     pickle.dump(res, outfile)
 
     L_total = len(res)
     F_res_store = np.zeros((L_total, 7))
@@ -399,6 +400,17 @@ if __name__ == "__main__":
             print('=' * 157)
 
     print('#' * 157)
+    print('-' * 15 + ' [BIG MEAN OUTPUT ] ' + '-' * 122)
+    print(('###[P: ' + str(round(sum(F_res_store[:, 0]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 0]) / L_total, 4)))) +
+           ' || A: ' + str(round(sum(F_res_store[:, 1]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 1]) / L_total, 4)))) +
+           ' || R: ' + str(round(sum(F_res_store[:, 2]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 2]) / L_total, 4)))) +
+           ' || MA: ' + str(round(sum(F_res_store[:, 3]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 3]) / L_total, 4)))) +
+           ' || FA: ' + str(round(sum(F_res_store[:, 4]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 4]) / L_total, 4)))) +
+           ' || F1: ' + str(round(sum(F_res_store[:, 5]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 5]) / L_total, 4)))) +
+           ' || F' + str(beta) + ': ' + str(round(sum(F_res_store[:, 6]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 6]) / L_total, 4)))) +
+           ']###'
+           ))
+    print(GVal.getPARA('kick_off_no1_PARA'))
     print(' ')
     finish = clock()
     print('######## [ Time Consumed: ' + str(round((finish - start), 4)) + 's ] ############')

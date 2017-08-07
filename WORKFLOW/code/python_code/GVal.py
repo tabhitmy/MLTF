@@ -2,6 +2,22 @@
 import os
 
 PARA = {}
+loopPARA_cache = {}
+loopPARA_namecahce = []
+
+
+def initLoopPARA(name_PARA, value_PARA):
+    global loopPARA_cache
+    global loopPARA_namecahce
+    loopPARA_cache[name_PARA] = [value_PARA, len(value_PARA)]
+    loopPARA_namecahce = [loopPARA_namecahce, name_PARA]
+    return 0
+
+
+def getLoopPARA_cache():
+    global loopPARA_cache
+    global loopPARA_namecahce
+    return loopPARA_cache, loopPARA_namecahce
 
 
 def setPARA(name_PARA, value_PARA):
