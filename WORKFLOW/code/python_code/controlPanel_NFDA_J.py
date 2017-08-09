@@ -2,6 +2,7 @@
 
 import numpy as np
 import GVal
+import copy
 from toolkitJ import cell2dmatlab_jsp
 
 
@@ -198,35 +199,36 @@ def processCodeEncoder():
     recording_index_list = GVal.getPARA('recording_index_list_PARA')
     classifier_list = GVal.getPARA('classifier_list_PARA')
 
-    loopPARA_cache = GVal.getLoopPARA_cache()[0]
+    loopPARA_cache = GVal.getLoopPARA_cache()
+    print(loopPARA_cache)
 
     loopPARA_amount = len(loopPARA_cache)
     GVal.setPARA('loopPARA_amount_PARA', loopPARA_amount)
     loopPARA_totalsize = 1
-    loopPARA_bitsize = np.zeros([loopPARA_amount, 1])
+    loopPARA_bitsize = cell2dmatlab_jsp([loopPARA_amount], 1, 0)
     loopPARA_namecache = cell2dmatlab_jsp([loopPARA_amount, 1], 2, [])
 
     j = 0
+    h = {}
     for loopPARA_name in loopPARA_cache.keys():
         loopPARA_totalsize *= loopPARA_cache[loopPARA_name][1]
-        loopPARA_bitsize[j] = loopPARA_cache[loopPARA_name][1]
+        loopPARA_bitsize[j] = int(loopPARA_cache[loopPARA_name][1])
         loopPARA_namecache[j][0] = loopPARA_name
+        h[j] = loopPARA_cache[loopPARA_name][0]
         j += 1
 
     # Important processCode Para 1.
     GVal.setPARA('loopPARA_namecache_PARA', loopPARA_namecache)
-    loopPARA_codepool = cell2dmatlab_jsp([loopPARA_totalsize, loopPARA_amount], 2, [])
 
-    k = cell2dmatlab_jsp([loopPARA_amount], 1, [0])
-
-    for i in range(loopPARA_totalsize):
-        for jj in range(loopPARA_amount):
-            loopPARA_codepool[i][jj] = loopPARA_cache[loopPARA_namecache[jj][0]][0][k[jj]][0]
-            if k[jj] < loopPARA_bitsize[jj] - 1:
-                k[jj][0] += 1
-            else:
-                k[jj][0] = 0
-
+    loopPARA_codepool = cell2dmatlab_jsp([loopPARA_amount], 1, 0)
+    loopPARA_temppool = cell2dmatlab_jsp([loopPARA_amount], 1, 0)
+    print(loopPARA_bitsize)
+    loopPARA_codepool = iterCodePool(loopPARA_amount, loopPARA_bitsize, loopPARA_temppool, h, loopPARA_codepool)
+    loopPARA_codepool = copy.deepcopy(loopPARA_codepool[1:])
+    # Example:
+    # loopPARA_codepool[loopPARA_serialnum][loopPARA_num]
+    print(loopPARA_codepool)
+    exit()
     # Important processCode Para 2.
     GVal.setPARA('loopPARA_codepool_PARA', loopPARA_codepool)
     print('### Loop Para Pool Size: [' + str(loopPARA_totalsize) + ', ' + str(loopPARA_amount) + '] ([Total Loop,Loop Parameter amount])')
@@ -268,3 +270,16 @@ def processCodeDecoder(process_code):
     print('######## [ Decoder Success! ] ########')
 
     return select_index_temp, classifier_num_temp
+
+
+def iterCodePool(nlevel, dims, temp, h, y):
+    # This function is working to create a matrix contain all the possible combination of a uncertian number of lists(or arrays).
+    # Use the iteration method.
+    nlevel -= 1
+    for i in range(dims[-1]):
+        temp[nlevel] = h[nlevel][i]
+        if nlevel > 0:
+            y = iterCodePool(nlevel, dims[:-1], temp, h, y)
+        else:
+            y = np.vstack((y, temp))
+    return y

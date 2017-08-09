@@ -42,7 +42,7 @@ def cell2dmatlab_jsp(dims, n, init_value):
     #       n ,  the dimension of the demanding cell
     #       init_value, the initial value put in the list cell.  can be '[ ]'
     #
-    # Author: Jsp GAO,  # Date:  Juine 21th,2017
+    # Author: Jsp GAO,  # Date:  June 21th,2017
     if n == 2:
         dims[0], dims[1] = dims[1], dims[0]
     global ndig
