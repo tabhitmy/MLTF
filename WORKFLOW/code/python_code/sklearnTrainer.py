@@ -191,7 +191,7 @@ def randomForest(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = skemb.RandomForestClassifier(n_estimators=10, criterion='gini', max_depth=3, min_samples_split=30, min_samples_leaf=5, random_state=0)
+    clf = skemb.RandomForestClassifier(n_estimators=4, criterion='gini', max_depth=5, min_samples_split=30, min_samples_leaf=5, random_state=0)
 
     clf.fit(X_tra, y_tra, sample_weight=weights)
 
@@ -255,7 +255,7 @@ def sklearnTrainer(classifier_num, X_train_raw, Y_train_raw, X_valid_raw, Y_vali
     }
 
     print('### With model: [' + classifier_list[classifier_num][1] + ']')
-    print('######## [Predicting ... ] ########')
+
     # Loading model to do the classification
     clf, score, FRAP = classifier_list[int(str(classifier_num)[0:2])][0](X, y, X_valid, y_valid, index_no, classifier_num)
     clf_cache[classifier_num] = clf

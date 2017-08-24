@@ -91,11 +91,17 @@ def datasetSeparation(X, Y, split_type, para):
     ###################################
     # Main  #############################
     ###################################
+    # Dictionary Type Controlled Switcher. (Python doesn't get a switch)
     split_type_switcher = {
+        # LOO leave one out
         1:  caseLOO,
+        # LPO leave p out
         2:  caseLPO,
+        # KFold K fold
         3:  caseKFold,
+        # Stratified K fold
         4:  caseStratifiedKFold,
+        # Random raw split
         5:  caseRawsplit
     }
 

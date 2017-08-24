@@ -29,11 +29,14 @@ from datasetSeparation_NFDA_J import datasetSeparation
 from feaSelection_NFDA_J import feaSelection
 from dataBalance_NFDA_J import dataBalance
 from labelProcessor_NFDA_J import labelProcessor
+
+from plotting_NFDA_J import featurePlotting
+from plotting_NFDA_J import resultPlotting
 #
 # @profile
 
 
-def dataConstruction_NFDA(select_index, online_fea_selectindex, subject_sample_length, label_signal, online_fea_signal, noise_label_signal, path, save_flag):
+def dataConstruction(select_index, online_fea_selectindex, subject_sample_length, label_signal, online_fea_signal, noise_label_signal, path, save_flag):
     for subject_num in np.arange(len(select_index)):
         print('Data Constructing: (' + str(subject_num + 1) + '/' + str(len(select_index)) + ') ')
         for sample_num in np.arange(int(subject_sample_length[subject_num][0])):
@@ -47,10 +50,12 @@ def dataConstruction_NFDA(select_index, online_fea_selectindex, subject_sample_l
             for label_num in range(2, 4):
                 label_temp[label_num] = noise_label_signal[subject_num][label_num - 2][sample_num]
 
+            # Developed Feature
             online_fea_temp = np.zeros([len(online_fea_selectindex), 1])
             for fea_num in range(len(online_fea_selectindex)):
                 online_fea_temp[fea_num] = online_fea_signal[subject_num][fea_num][sample_num]
 
+            # Append each temp to the corresponding standard output
             if subject_num == 0 and sample_num == 0:
                 label_all = label_temp
                 online_fea_all = online_fea_temp
@@ -69,7 +74,7 @@ def dataConstruction_NFDA(select_index, online_fea_selectindex, subject_sample_l
 # @profile
 
 
-def labelReading_NFDA(select_index, data_file, path):
+def labelReading(select_index, data_file, path):
 
     # Initialize several matrix
     label_signal = cell2dmatlab_jsp([len(select_index), 2], 2, [])
@@ -86,19 +91,19 @@ def labelReading_NFDA(select_index, data_file, path):
         # Loading of labels.
         label_file = glob.glob(path['label_path'] + recordname + '*.txt')
         if not label_file:
+            # return if no file in local database
             lplb_count1 += 1
             continue
         active_index.append(lplb_count1)
 
+        # If the
         if recordname in GVal.getPARA('label_raw_cache').keys():
             label_raw = GVal.getPARA('label_raw_cache')[recordname]
-            # print('^^^' * 100)
         else:
             label_raw = np.loadtxt(label_file[0])
             GVal.getPARA('label_raw_cache')[recordname] = label_raw
-            # print('&&&' * 100)
-            # GVal.setPARA('label_raw_cache', {recordname: label_raw})
 
+        # Save the total frame length of the current recording
         subject_sample_length[lplb_count1] = len(label_raw)
 
         # Label
@@ -115,10 +120,10 @@ def labelReading_NFDA(select_index, data_file, path):
 # @profile
 
 
-def featurePreparation_NFDA(select_index, online_fea_selectindex, noise_label_index, active_index, data_file):
+def featurePreparation(select_index, online_fea_selectindex, noise_label_index, active_index, data_file):
     # Concatenate all the subjects together in one huge matrix.
     # Comprehensive feature preparation.
-    # Bluring the concept of subjects. Combine all the labels together.
+    # Bluring the concept of subjects. Combine all records together.
 
     # [TODO] Add the Developing Features
     dev_fea_signal = []
@@ -140,6 +145,7 @@ def featurePreparation_NFDA(select_index, online_fea_selectindex, noise_label_in
             online_fea_raw = np.loadtxt(online_fea_file[0])
             GVal.getPARA('online_fea_raw_cache')[recordname] = online_fea_raw
 
+        # Noise label information. (Contain noise and noblink label information)
         j_lplb_count = 0
         for j in noise_label_index:
             noise_label_signal[lplb_count1][j_lplb_count] = online_fea_raw[:, j]
@@ -158,68 +164,30 @@ def featurePreparation_NFDA(select_index, online_fea_selectindex, noise_label_in
 #
 
 
-def featurePlotting_NFDA(label_all, online_fea_all):
-    nega_index_raw = np.nonzero(label_all[0] == 0)[0]
-    posi1_index_raw = np.nonzero(label_all[0] == 1)[0]
-    posi2_index_raw = np.nonzero(label_all[0] == 2)[0]
-    posi3_index_raw = np.nonzero(label_all[0] == 3)[0]
-
-    # [nega, posi1, posi2, posi3]
-    colorlist = ['#0d75f8', '#ff9a8a', '#ef4026', '#8f1402']
-
-    # [TODO] The sample selecting and balancing.(Normally two things to do: 1. Downsampling the negative; 2. Merging the positive)
-    nega_total_num = len(nega_index_raw)
-    posi_total_num = len(posi1_index_raw) + len(posi2_index_raw) + len(posi3_index_raw)
-    nega_ds = int(nega_total_num / posi_total_num)
-    nega_index = nega_index_raw[1: nega_total_num: nega_ds]
-    posi1_index = posi1_index_raw
-    posi2_index = posi2_index_raw
-    posi3_index = posi3_index_raw
-
-    print(len(nega_index), len(posi1_index), len(posi2_index), len(posi3_index))
-    pic_num = 1
-    for fea1_num in range(10):
-        for fea2_num in range(fea1_num + 1, 10):
-            h = plt.figure(num=str(pic_num), figsize=(17, 9.3))
-            plt.plot(online_fea_all[fea1_num][nega_index], online_fea_all[fea2_num][nega_index], '.', color=colorlist[0], label='No Fatigue')
-            plt.plot(online_fea_all[fea1_num][posi1_index], online_fea_all[fea2_num][posi1_index], '.', color=colorlist[1], label='Fatigue LV7')
-            plt.plot(online_fea_all[fea1_num][posi2_index], online_fea_all[fea2_num][posi2_index], '.', color=colorlist[2], label='Fatigue LV8')
-            plt.plot(online_fea_all[fea1_num][posi3_index], online_fea_all[fea2_num][posi3_index], '.', color=colorlist[3], label='Fatigure LV9')
-            plt.legend(loc='best', prop=zhfont)
-            plt.xlabel(online_fea_name[fea1_num], FontProperties=zhfont)
-            plt.ylabel(online_fea_name[fea2_num], FontProperties=zhfont)
-            plt.title('Figure #' + str(pic_num) + ' With Recording Num: ' + str(select_index))
-            plt.show()
-            plt.savefig((work_path + '/pic/Figure' + str(pic_num) + '.png'))
-            print('Picture' + str(pic_num) + 'Saved!')
-            plt.close(h)
-            pic_num += 1
-    return 0
-
-
 def mainProcesser(process_code):
+    # The decoder translate the process_code into different parameter to be set.
     select_index, classifier_num = processCodeDecoder(process_code)
 
+    # Prepare some information
     online_fea_selectindex = GVal.getPARA('online_fea_selectindex_PARA')
     noise_label_index = GVal.getPARA('noise_label_index_PARA')
-    ################################################################################
-    ############## [ Engine START! ] ###################################################
-    ################################################################################
 
     ####################################
     # [TODO] Raw Data Reading methods
-    #    FUNCTION     rawDataReading_NFDA()
+    #    FUNCTION     rawDataReading()
 
     ####################################
     # [TODO] New preprocessing methods
-    #　FUNCTION     raw_dev_fea = preProcessing_NFDA()
+    #　FUNCTION     raw_dev_fea = preProcessing()
 
-    # Output raw_dev_fea should then become input of the Function featurePreparation_NFDA()
-
+    # Output raw_dev_fea should then become input of the Function featurePreparation()
     if FLAG['data_prepare_flag'] and GVal.getPARA('firstTimeConstruction'):
-        active_index, subject_sample_length, label_signal = labelReading_NFDA(select_index, data_file, path)
-        online_fea_signal, dev_fea_signal, noise_label_signal = featurePreparation_NFDA(select_index, online_fea_selectindex, noise_label_index, active_index, data_file)
-        label_all, online_fea_all = dataConstruction_NFDA(select_index, online_fea_selectindex, subject_sample_length, label_signal, online_fea_signal, noise_label_signal, path, FLAG['save_flag'])
+        # Load the label information from local database
+        active_index, subject_sample_length, label_signal = labelReading(select_index, data_file, path)
+        # Load and prepare the feature from local database
+        online_fea_signal, dev_fea_signal, noise_label_signal = featurePreparation(select_index, online_fea_selectindex, noise_label_index, active_index, data_file)
+        # Construct all the information, make a standard format. [label_all] & [online_fea_all]
+        label_all, online_fea_all = dataConstruction(select_index, online_fea_selectindex, subject_sample_length, label_signal, online_fea_signal, noise_label_signal, path, FLAG['save_flag'])
         GVal.setPARA('firstTimeConstruction', 0)
     else:
         print('### Skip the data construction, load from the database')
@@ -239,39 +207,9 @@ def mainProcesser(process_code):
     #   label_all[1,snum]  : confidence
     #   online_fea_all[fnum,snum] : difference features.
 
-    # Feature Plotting [N/A]
-    if FLAG['plotting_flag']:
-        featurePlotting_NFDA(label_all, online_fea_all)
-    else:
-        print('### No plotting, exit feature plotting...')
-
-    # Prepare the F, Y
-
-    # X_raw[snum, fnum]
-    # Y[snum,:]
-    if FLAG['label_process_flag']:
-        X_raw, Y = labelProcessor(X_rawraw, Y_raw)
-    else:
-        X_raw = copy.deepcopy(X_rawraw)
-        Y = copy.deepcopy(Y_raw)
-
-    ####################################
-    # [TODO IN PROGRESS]  Add the feature selection Method
-    if FLAG['fea_selection_flag']:
-        X = feaSelection(X_raw)
-    else:
-        X = copy.deepcopy(X_raw)
-
-    ####################################
-    # [TODO] Feature Regulation
-    # Three types of features:
-    #     1 -- Continuous
-    #     2 -- Discrete (Categorical)
-    #     3 -- Discrete Binary (0 and 1)
-
     ####################################
     # [TODO DONE!]  Compare with Y. Do the validation .   Try leave-one-out, or K-fold
-    X_train, X_validation, y_train, y_validation, N = datasetSeparation(X, Y, GVal.getPARA('split_type_num'), GVal.getPARA('split_type_para'))
+    X_train_rawraw, X_validation_raw, y_train_raw, y_validation_raw, N = datasetSeparation(X_rawraw, Y_raw, GVal.getPARA('split_type_num'), GVal.getPARA('split_type_para'))
     # Sample: X_train[n_fold][fnum,snum]
 
     classifier_frame = {
@@ -281,36 +219,84 @@ def mainProcesser(process_code):
     }
 
     # Loop working when n fold is working.
-
     for N_lplb_count in np.arange(N):
+        print(' ')
+        print('#' * 32)
+        print('######## [Fold (#' + str(N_lplb_count + 1) + '/' + str(N) + ') ] ########')
+
+        # Prepare the F, Y
+
+        if FLAG['label_process_flag']:
+            # label processor  targeting on noconfident frame / noise frame / noblink frame 'N3 frame'
+            # Extendable function strucutre. For any customized label processing tasks.
+            X_train_raw, y_train = labelProcessor(X_train_rawraw[N_lplb_count], y_train_raw[N_lplb_count])
+        else:
+            X_train_raw = copy.deepcopy(X_train_rawraw[N_lplb_count])
+            y_train = copy.deepcopy(y_train_raw[N_lplb_count])
+
+        # # Feature Plotting [N/A]
+        # if FLAG['plotting_flag']:
+        #     featurePlotting(Y, X_raw, process_code)
+        # else:
+        #     print('### No plotting, exit feature plotting...')
+        ####################################
+        # [TODO IN PROGRESS]  Add the feature selection Method
+        if FLAG['fea_selection_flag']:
+            # feaSelection is doing the feature selection only on trainning set, return the fea selection result
+            X_train, feaS_mdl = feaSelection(X_train_raw)
+            # According the fea selection result, preprocess  validation set in corresponding to the  trainning set.
+            X_validation = feaS_mdl.fit_transform(X_validation_raw[N_lplb_count])
+        else:
+            X_train = copy.deepcopy(X_train_raw)
+            X_validation = copy.deepcopy(X_validation_raw[N_lplb_count])
+
+        ####################################
+        # [TODO] Feature Regulation
+        # Three types of features:
+        #     1 -- Continuous
+        #     2 -- Discrete (Categorical)
+        #     3 -- Discrete Binary (0 and 1)
+
+        y_validation = copy.deepcopy(y_validation_raw[N_lplb_count])
+
         ####################################
         # [TODO IN PROGRESS] Data balancing method!
-        # [IMPORTANT!] Data balance should be after the separation and only affect on training set!
+        # Data balance only affect on training set.
+        # The method is solving the unbalance problem.
+        # The function is extendable, customized data balancing method can be applied.
         if FLAG['data_balance_flag']:
-            X_train[N_lplb_count], y_train[N_lplb_count] = dataBalance(X_train[N_lplb_count], y_train[N_lplb_count])
+            X_train, y_train = dataBalance(X_train, y_train)
 
-        res_temp = cell2dmatlab_jsp([1, 4], 2, [])
+        res_temp = cell2dmatlab_jsp([1, 5], 2, [])
 
         # [TODO IN PROGRESS] Classifier Designing
-        # Try different classifiers, Get CY
-        print(' ')
-        print('#' * 35)
-        print('######## [Fold (#' + str(N_lplb_count + 1) + '/' + str(N) + ') ] ########')
-        print('#' * 35)
+
         res_temp[0][0] = process_code
-        res_temp[0][1:4] = classifier_frame[int(str(classifier_num)[0])](classifier_num, X_train[N_lplb_count], y_train[N_lplb_count], X_validation[N_lplb_count], y_validation[N_lplb_count], path)
+        res_temp[0][1:4] = classifier_frame[int(str(classifier_num)[0])](classifier_num, X_train, y_train, X_validation, y_validation, path)
         # Sample: res[fold number][infoserial]
-        # infoserial :  0- model object   1- Training Score  2- FRAP
+        # infoserial :  1- model object   2- Training Score  3- FRAP
         if N_lplb_count == 0:
             res = res_temp
         else:
             res += res_temp
+
+        if FLAG['plotting_flag']:
+            FRAP = res_temp[0][3]
+            resultPlotting(FRAP, process_code)
+        else:
+            print('### No plotting, exit feature plotting...')
+
         time.sleep(0.001)
+
     return res, N
 
 if __name__ == "__main__":
     start = clock()
+
+    # Gain the path prefix, this is added to suit up different processing environment.
     path_prefix = initializationProcess()
+
+    # Define the basic path.
     path = {
         'data_path': (path_prefix + 'public/EEG_RawData/'),
         'label_path': (path_prefix + 'GaoMY/EXECUTION/NFDA/Label/'),
@@ -318,21 +304,38 @@ if __name__ == "__main__":
         'online_fea_path': (path_prefix + 'GaoMY/EXECUTION/NFDA/online_new/')
     }
 
+    # Define the several sub path
+    # work path, in which all the processing code are placed
     path['work_path'] = (path['parent_path'] + 'python_code/')
+    # fig path, to save the result figs
+    path['fig_path'] = (path['parent_path'] + 'fig/')
+    # pdata_path, to save several types of processing data, (temporial data for accelerating the procedure)
     path['pdata_path'] = (path['parent_path'] + 'data/')
 
+    # Global Statement of [path]
     GVal.setPARA('path_PARA', path)
+
+    # Change the current path if necessary.
     os.chdir(path['work_path'])
 
-    # RawData Reading.
+    # RawData folder list reading.
     data_file = sorted(os.listdir(path['data_path']))
 
+    # Processing the Control Panel! All the important configuration are pre-defined in control panel.
+    # Refer the file controlPanel_NFDA_J.py for more details.
+    # [FLAG] is a flag controller, to switch on/off several processing procedure.
+    # [process_code_pack] is a package containing all the targeting process loops, each loop has an independent process_code.
     FLAG, process_code_pack = controlPanel()
 
     # ProcessingCodeLoop
+    # The core processing loop. Inside pay attention to mainProcesser()
     L_lplb_count = 0
     L = len(process_code_pack)
     for process_code in process_code_pack:
+        print(' ')
+        print('$' * 150)
+        print('$$$$$$$$ [ Loop (#' + str(L_lplb_count) + '/' + str(L) + ')Start! ] ' + '$' * 119)
+        print('$' * 150)
         GVal.setPARA('process_code_PARA', process_code)
         res_singleLOOP, N = mainProcesser(process_code)
         if L_lplb_count == 0:
@@ -340,10 +343,7 @@ if __name__ == "__main__":
         else:
             res += res_singleLOOP
         L_lplb_count += 1
-        print(' ')
-        print('$' * 70)
-        print('####### [ Loop (#' + str(L_lplb_count) + '/' + str(L) + ')DONE! ] #######')
-        print('$' * 70)
+
         time.sleep(0.001)
 
     # [TODO] Result Visualization  (Code referring the picturing.py)
@@ -357,14 +357,14 @@ if __name__ == "__main__":
     L_total = len(res)
     F_res_store = np.zeros((L_total, 7))
     print(' ')
-    print('#' * 15 + ' [SINGLE FOLD OUTPUT, ' + str(L) + ' process packs in total] ' + '#' * 20 + ' [Loop Para Name: ' + GVal.getPARA('loopPARA_name') + ']' + '#' * 38)
+    # print('#' * 15 + ' [SINGLE FOLD OUTPUT, ' + str(L) + ' process packs in total] ' + '#' * 20 + ' [Loop Para Name: ' + GVal.getPARA('loopPARA_name') + ']' + '#' * 38)
     beta = GVal.getPARA('beta_PARA')
     res_lplb_count = 0
     res_c = 1
     for i in range(L_total):
         res_lplb_count += 1
         if (res_lplb_count % N) == 1:
-            print('=' * 15 + ' [Process Pack NO.' + str(res_c) + ', ' + str(N) + ' folds in total] ' + '=' * 91)
+            print('=' * 15 + ' [Process Pack NO.' + str(res_c) + ', ' + str(N) + ' folds in total] ' + '=' * 105)
             res_c += 1
         F_res_store[i, 0] = res[i][3][0]
         F_res_store[i, 1] = res[i][3][1]
@@ -385,7 +385,7 @@ if __name__ == "__main__":
                ']###'
                ))
         if (res_lplb_count % N) == 0:
-            print('-' * 15 + ' [MEAN OUTPUT ] ' + '-' * 126)
+            print('-' * 15 + ' [MEAN OUTPUT ] ' + '-' * 128)
             print(('###[P: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 0]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 0]) / N, 4)))) +
                    ' || A: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 1]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 1]) / N, 4)))) +
                    ' || R: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 2]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 2]) / N, 4)))) +
@@ -397,10 +397,10 @@ if __name__ == "__main__":
                    '] | [Classifier: ' + res[res_lplb_count - 1][1] + ' ' * (17 - len(res[res_lplb_count - 1][1])) +
                    ']###'
                    ))
-            print('=' * 157)
+            print('=' * 159)
 
-    print('#' * 157)
-    print('-' * 15 + ' [BIG MEAN OUTPUT ] ' + '-' * 122)
+    print('#' * 159)
+    print('-' * 15 + ' [BIG MEAN OUTPUT ] ' + '-' * 124)
     print(('###[P: ' + str(round(sum(F_res_store[:, 0]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 0]) / L_total, 4)))) +
            ' || A: ' + str(round(sum(F_res_store[:, 1]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 1]) / L_total, 4)))) +
            ' || R: ' + str(round(sum(F_res_store[:, 2]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 2]) / L_total, 4)))) +
@@ -410,7 +410,7 @@ if __name__ == "__main__":
            ' || F' + str(beta) + ': ' + str(round(sum(F_res_store[:, 6]) / L_total, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[:, 6]) / L_total, 4)))) +
            ']###'
            ))
-    print(GVal.getPARA('kick_off_no1_PARA'))
+
     print(' ')
     finish = clock()
     print('######## [ Time Consumed: ' + str(round((finish - start), 4)) + 's ] ############')
