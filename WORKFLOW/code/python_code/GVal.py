@@ -1,6 +1,6 @@
 # globalValue_NFDA_J.py
 import os
-
+import numpy as np
 # GVal is a great tool when developer need to maintain a 'hyper-global variable'  which is able to convey among files,
 # Correspondingly, global variable can only convey among functions or classes in same file.
 # Author: Josep Gao
@@ -8,14 +8,34 @@ import os
 # Copyleft.
 
 PARA = {}
+DVPARA = {}
 loopPARA_cache = {}
+dV_PARA_cache = []
 
-# Specific for loop parameter setting in controlPanel()
+
+def setDVPARA(name_PARA, value_PARA):
+    global DVPARA
+    DVPARA[name_PARA] = value_PARA
+    return 0
+
+
+def getDVPARA(name_PARA):
+    global DVPARA
+    return DVPARA[name_PARA]
 
 
 def initLoopPARA(name_PARA, value_PARA):
     global loopPARA_cache
-    loopPARA_cache[name_PARA] = [value_PARA, len(value_PARA)]
+
+    if type(name_PARA) == int:
+        if not str(name_PARA)[0:2] == str(getPARA('classifier_list_PARA')[0]):
+            print(['Warning! The input loop parameter: ' + str(name_PARA) + ' is not the current set classifier: ' + str(getPARA('classifier_list_PARA')) + '. Invalid input will not be processed.'])
+            return 0
+
+    loopPARA_cache[name_PARA] = [np.round(value_PARA, decimals=2), max([len(value_PARA), 1])]
+
+    if name_PARA == 'cleanup':
+        loopPARA_cache = {}
     return 0
 
 # Specific for loop parameter setting in controlPanel()
@@ -72,3 +92,29 @@ def show(*args):
 
     input('Showing the WorkSpace and Pause! Press [Enter] to continue... ')
     return 0
+
+
+# def initLoopPARA(name_PARA, value_PARA):
+#     global loopPARA_cache
+#     print(loopPARA_cache)
+#     print('loc-1')
+#     print(str(name_PARA)[0:2])
+#     print(str(getPARA('classifier_list_PARA')[0]))
+#     input('pause...press enter')
+#     if type(name_PARA) == int:
+#         if not str(name_PARA)[0:2] == str(getPARA('classifier_list_PARA')[0]):
+#             print(['Warning! The input loop parameter: ' + str(name_PARA) + ' is not the current set classifier: ' + str(getPARA('classifier_list_PARA')) + '. Invalid input will not be processed.'])
+#             print(loopPARA_cache)
+#             print('loc-2')
+#             input('pause...press enter')
+#             return 0
+
+#     loopPARA_cache[name_PARA] = [np.round(value_PARA, decimals=2), max([len(value_PARA), 1])]
+#     print(name_PARA)
+#     print(type(name_PARA))
+#     if name_PARA == 'cleanup':
+#         loopPARA_cache = {}
+#     print(loopPARA_cache)
+#     print('loc-3')
+#     input('pause...press enter')
+#     return 0

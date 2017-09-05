@@ -6,6 +6,11 @@ from toolkitJ import cell2dmatlab_jsp
 import GVal
 
 
+####################################################
+
+
+####################################################
+
 def fScore(beta, P, R):
     F = (1 + beta**2) * (P * R) / ((beta**2) * P + R)
     return F

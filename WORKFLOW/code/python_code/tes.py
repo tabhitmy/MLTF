@@ -1,59 +1,52 @@
-from __future__ import print_function
+# from __future__ import print_function
 
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
-from sklearn.svm import SVC
+# from sklearn import datasets
+# from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import GridSearchCV
+# from sklearn.metrics import classification_report
+# from sklearn.svm import SVC
 
-print(__doc__)
+# print(__doc__)
+import numpy as np
+from operator import itemgetter
 
-# Loading the Digits dataset
-digits = datasets.load_digits()
 
-# To apply an classifier on this data, we need to flatten the image, to
-# turn the data in a (samples, feature) matrix:
-n_samples = len(digits.images)
-X = digits.images.reshape((n_samples, -1))
-y = digits.target
+def zipSort(mas, slv):
+    # sort the slv with the mas ascending .
+    goodsortflag = 1
+    for i in range(len(mas) - 2):
+        if (mas[i + 2] - mas[i + 1]) * (mas[i + 1] - mas[i]) < 0:
+            goodsortflag = 0
+            break
 
-# Split the dataset in two equal parts
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.5, random_state=0)
+    if goodsortflag == 1:
+        return mas, slv
+    else:
+        k = 0
+        for slvline in slv:
+            zipdict = {}
+            for i in range(len(mas)):
+                zipdict[mas[i]] = slvline[i]
+            zipdict_res = sorted(zipdict.items())
 
-# Set the parameters by cross-validation
-tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                     'C': [1, 10, 100, 1000]},
-                    {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+            xdata = np.zeros([1, len(zipdict_res)])
+            ydata_temp = np.zeros([1, len(zipdict_res)])
+            for j in range(len(zipdict_res)):
+                xdata[0][j] = zipdict_res[j][0]
+                ydata_temp[0][j] = zipdict_res[j][1]
 
-scores = ['precision', 'recall']
+            if k == 0:
+                ydata = ydata_temp
+            else:
+                ydata = np.concatenate((ydata, ydata_temp))
+            k += 1
+        xdata = xdata.tolist()
+        ydata = ydata.tolist()
+        return xdata, ydata
 
-for score in scores:
-    print("# Tuning hyper-parameters for %s" % score)
-    print()
 
-    clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
-                       scoring='%s_macro' % score)
-    clf.fit(X_train, y_train)
+x = [0.1, 1.3, 0.5, 1.2]
+y = [[12, 6, 3, 7], [0.01, 0.02, 0.03, 0.04]]
 
-    print("Best parameters set found on development set:")
-    print()
-    print(clf.best_params_)
-    print()
-    print("Grid scores on development set:")
-    print()
-    means = clf.cv_results_['mean_test_score']
-    stds = clf.cv_results_['std_test_score']
-    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r"
-              % (mean, std * 2, params))
-    print()
 
-    print("Detailed classification report:")
-    print()
-    print("The model is trained on the full development set.")
-    print("The scores are computed on the full evaluation set.")
-    print()
-    y_true, y_pred = y_test, clf.predict(X_test)
-    print(classification_report(y_true, y_pred))
-    print()
+xdata, ydata = zipSort(x, y)

@@ -19,6 +19,7 @@ import sklearn.svm as sksvm
 import sklearn.naive_bayes as sknb
 
 import GVal
+from controlPanelSubFunc_NFDA_J import dVM
 
 from trainerSubFunc_NFDA_J import *
 
@@ -191,8 +192,11 @@ def randomForest(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = skemb.RandomForestClassifier(n_estimators=4, criterion='gini', max_depth=5, min_samples_split=30, min_samples_leaf=5, random_state=0)
-
+    clf = skemb.RandomForestClassifier(n_estimators=dVM[3200][2],
+                                       criterion=dVM[3201][2], max_features=dVM[3202][2],
+                                       max_depth=dVM[3203][2], min_samples_split=dVM[3204][2],
+                                       min_samples_leaf=5, random_state=0)
+    # GVal.show('dVM_PARA')
     clf.fit(X_tra, y_tra, sample_weight=weights)
 
     return processLearning(clf, X_tra, y_tra, X_val, y_val)

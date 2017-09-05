@@ -18,9 +18,8 @@ from time import clock
 from toolkitJ import cell2dmatlab_jsp
 import GVal
 from controlPanel_NFDA_J import controlPanel
-from controlPanel_NFDA_J import processCodeEncoder
-from controlPanel_NFDA_J import processCodeDecoder
-from controlPanel_NFDA_J import initializationProcess
+from controlPanelSubFunc_NFDA_J import initializationProcess
+from controlPanelSubFunc_NFDA_J import processCodeDecoder
 
 
 from sklearnTrainer import sklearnTrainer
@@ -32,6 +31,7 @@ from labelProcessor_NFDA_J import labelProcessor
 
 from plotting_NFDA_J import featurePlotting
 from plotting_NFDA_J import resultPlotting
+from plotting_NFDA_J import FRAPPlotting
 #
 # @profile
 
@@ -294,23 +294,23 @@ if __name__ == "__main__":
     start = clock()
 
     # Gain the path prefix, this is added to suit up different processing environment.
-    path_prefix = initializationProcess()
+    path_prefix, username = initializationProcess()
 
     # Define the basic path.
     path = {
         'data_path': (path_prefix + 'public/EEG_RawData/'),
-        'label_path': (path_prefix + 'GaoMY/EXECUTION/NFDA/Label/'),
-        'parent_path': (path_prefix + 'GaoMY/EXECUTION/NFDA/code/'),
-        'online_fea_path': (path_prefix + 'GaoMY/EXECUTION/NFDA/online_new/')
+        'label_path': (path_prefix + 'public/backend_data/Label/'),
+        'online_fea_path': (path_prefix + 'public/backend_data/online_new/'),
+        'parent_path': (path_prefix + username + '/EXECUTION/NFDA/code/')
     }
 
     # Define the several sub path
     # work path, in which all the processing code are placed
     path['work_path'] = (path['parent_path'] + 'python_code/')
     # fig path, to save the result figs
-    path['fig_path'] = (path['parent_path'] + 'fig/')
+    path['fig_path'] = (path['parent_path'] + 'python_code/fig/')
     # pdata_path, to save several types of processing data, (temporial data for accelerating the procedure)
-    path['pdata_path'] = (path['parent_path'] + 'data/')
+    path['pdata_path'] = (path['parent_path'] + 'python_code/data/')
 
     # Global Statement of [path]
     GVal.setPARA('path_PARA', path)
@@ -325,16 +325,18 @@ if __name__ == "__main__":
     # Refer the file controlPanel_NFDA_J.py for more details.
     # [FLAG] is a flag controller, to switch on/off several processing procedure.
     # [process_code_pack] is a package containing all the targeting process loops, each loop has an independent process_code.
-    FLAG, process_code_pack = controlPanel()
+
+    FLAG, process_code_pack = controlPanel(username)
 
     # ProcessingCodeLoop
     # The core processing loop. Inside pay attention to mainProcesser()
     L_lplb_count = 0
     L = len(process_code_pack)
+
     for process_code in process_code_pack:
         print(' ')
         print('$' * 150)
-        print('$$$$$$$$ [ Loop (#' + str(L_lplb_count) + '/' + str(L) + ')Start! ] ' + '$' * 119)
+        print('$$$$$$$$ [ Loop (#' + str(L_lplb_count + 1) + '/' + str(L) + ')Start! ] ' + '$' * 119)
         print('$' * 150)
         GVal.setPARA('process_code_PARA', process_code)
         res_singleLOOP, N = mainProcesser(process_code)
@@ -346,13 +348,15 @@ if __name__ == "__main__":
 
         time.sleep(0.001)
 
-    # [TODO] Result Visualization  (Code referring the picturing.py)
-    # [Tempory Code]Now saving the res data into a pickle file.
-    #   And read in picturing and plotting. Later this will be moduled
-    #   and parameters can be tuned in control panel
+    if FLAG['plotting_flag']:
+        FRAPPlotting(res)
+        # [TODO] Result Visualization  (Code referring the picturing.py)
+        # [Tempory Code]Now saving the res data into a pickle file.
+        #   And read in picturing and plotting. Later this will be moduled
+        #   and parameters can be tuned in control panel
 
-    # with open('res.pickle', 'wb') as outfile:
-    #     pickle.dump(res, outfile)
+        # with open('res.pickle', 'wb') as outfile:
+        #     pickle.dump(res, outfile)
 
     L_total = len(res)
     F_res_store = np.zeros((L_total, 7))

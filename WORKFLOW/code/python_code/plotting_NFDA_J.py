@@ -6,8 +6,10 @@ from matplotlib.font_manager import FontProperties
 zhfont = FontProperties(fname="/usr/share/fonts/cjkuni-ukai/ukai.ttc")  # 图片显示中文字体
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pylab
 
 import GVal
+from toolkitJ import cell2dmatlab_jsp
 
 
 def featurePlotting(label_all, online_fea_all, processCode):
@@ -139,3 +141,101 @@ def resultPlotting(FRAP, processCode):
             pic_num += 1
             # exit()
     return 0
+
+
+def FRAPPlotting(res):
+    if GVal.getPARA('loopPARA_amount_PARA') < 1:
+        print('### Warning! No enough loop parameters for FRAP Plotting, skip it.')
+        return 0
+
+    path = GVal.getPARA('path_PARA')
+    beta = GVal.getPARA('beta_PARA')
+    dVM = GVal.getPARA('dVM_PARA')
+    dVPARA_index = GVal.getPARA('dVPARA_index_PARA')
+    dVPARA_value = GVal.getPARA('dVPARA_value_PARA')
+    loopPARA_namecache = GVal.getPARA('loopPARA_namecache_PARA')
+    L_pic = len(dVPARA_index)
+    # FontSize
+    ftsize = 18
+    # color
+    colorlist = ['#0203e2', '#6ecb3c', '#fd3c06', '#000000', '#000000']
+    # marker
+    markerlist = ['^', '.', 'v', '*', 'h']
+    # linestyle
+    linelist = ['-', '-', '-', ':', '-.']
+
+    params = {
+        'axes.labelsize': '15',
+        'xtick.labelsize': '22',
+        'ytick.labelsize': '22',
+        'lines.linewidth': 1,
+        'legend.fontsize': '15',
+        # 'figure.figsize'   : '12, 9'    # set figure size
+    }
+    pylab.rcParams.update(params)
+    for i in range(L_pic):
+        h = plt.figure(num=L_pic, figsize=(20, 9.3))
+
+        xdata_raw = dVPARA_value[i]
+
+        ydata_raw = cell2dmatlab_jsp([7], 1, [])
+
+        for dV_index in dVPARA_index[i]:
+            for k in range(7):
+                ydata_raw[k] += [res[dV_index][3][k]]
+
+        xdata, ydata = zipSort(xdata_raw, ydata_raw)
+
+        plt.plot(xdata, ydata[0], marker=markerlist[0], color=colorlist[0], linestyle=linelist[0], label='[P] Precision')
+        plt.plot(xdata, ydata[1], marker=markerlist[1], color=colorlist[1], linestyle=linelist[1], label='[A] Accuracy')
+        plt.plot(xdata, ydata[2], marker=markerlist[2], color=colorlist[2], linestyle=linelist[2], label='[R] Recall')
+        plt.plot(xdata, ydata[5], marker=markerlist[3], color=colorlist[3], linestyle=linelist[3], label='[F1] score')
+        plt.plot(xdata, ydata[6], marker=markerlist[4], color=colorlist[4], linestyle=linelist[4], label=['[F' + str(beta) + '] score'])
+        plt.legend(loc='best', prop=zhfont)
+        if type(loopPARA_namecache[i][0]) == int:
+            xlabeltext = 'Classifier: [ ' + res[0][1] + ' ] | Parameter: [ ' + dVM[loopPARA_namecache[i][0]][0] + ' ]'
+        else:
+            xlabeltext = 'General Parameter: [ ' + loopPARA_namecache[i][0] + ' ]'
+        plt.xlabel(xlabeltext, Fontsize=ftsize)
+        plt.ylabel('FRAP Value', Fontsize=ftsize)
+        plt.grid()
+        plt.show()
+        plt.savefig((path['fig_path'] + 'FRAP_' + str(loopPARA_namecache[i][0]) + '.png'))
+        print('Picture' + str(i) + 'Saved!')
+        plt.close(h)
+
+    return 0
+
+
+def zipSort(mas, slv):
+    # sort the slv with the mas ascending .
+    goodsortflag = 1
+    for i in range(len(mas) - 2):
+        if (mas[i + 2] - mas[i + 1]) * (mas[i + 1] - mas[i]) < 0:
+            goodsortflag = 0
+            break
+
+    if goodsortflag == 1:
+        return mas, slv
+    else:
+        k = 0
+        for slvline in slv:
+            zipdict = {}
+            for i in range(len(mas)):
+                zipdict[mas[i]] = slvline[i]
+            zipdict_res = sorted(zipdict.items())
+
+            xdata = np.zeros([1, len(zipdict_res)])
+            ydata_temp = np.zeros([1, len(zipdict_res)])
+            for j in range(len(zipdict_res)):
+                xdata[0][j] = zipdict_res[j][0]
+                ydata_temp[0][j] = zipdict_res[j][1]
+
+            if k == 0:
+                ydata = ydata_temp
+            else:
+                ydata = np.concatenate((ydata, ydata_temp))
+            k += 1
+        xdata = xdata[0].tolist()
+        ydata = ydata.tolist()
+        return xdata, ydata
