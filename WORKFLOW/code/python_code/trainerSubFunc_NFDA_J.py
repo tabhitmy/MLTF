@@ -112,8 +112,8 @@ def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
         8: ko1processor8
     }
 
-    print('###  Label 1 Processing Method: ' + GVal.getPARA('kick_off_no1_detail')[GVal.getPARA('kick_off_no1_PARA')])
-    y_tra, X_tra, y_val, X_val, weights = kick_off_no1_switcher[GVal.getPARA('kick_off_no1_PARA')](y_tra, X_tra, y_val, X_val, weights, index_no)
+    print('###  Label 1 Processing Method: ' + GVal.getPARA('kick_off_no1_detail')[int(GVal.getPARA('kick_off_no1_PARA'))])
+    y_tra, X_tra, y_val, X_val, weights = kick_off_no1_switcher[int(GVal.getPARA('kick_off_no1_PARA'))](y_tra, X_tra, y_val, X_val, weights, index_no)
 
     X_tra_res = copy.deepcopy(X_tra)
     X_val_res = copy.deepcopy(X_val)

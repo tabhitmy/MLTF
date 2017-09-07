@@ -88,7 +88,7 @@ def show(*args):
             print('[ ' + args_key + ' ] ' + '.' * (50 - len(args_key)) + ' | | ' + str(PARA[args_key]) + '\n')
     else:
         for key in PARA.keys():
-            print('[ ' + key + ' ] ' + '.' * (50 - len(key)) + ' || ' + str(PARA[key]) + '\n')
+            print('[ ' + str(key) + ' ] ' + '.' * (50 - len(str(key))) + ' || ' + str(PARA[key]) + '\n')
 
     input('Showing the WorkSpace and Pause! Press [Enter] to continue... ')
     return 0

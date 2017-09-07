@@ -3,17 +3,89 @@ import numpy as np
 import GVal
 import copy
 from toolkitJ import cell2dmatlab_jsp
-
+from toolkitJ import str2num
 # default input value matrix
 # For inner-classifier parameter loop. Here contains default loop
 # Specific for loop parameter setting in controlPanel()
 dVM = {}
 
+
+# 21 -- Linear SVM
+dVM[2100] = ['penalty', ['l1', 'l2'], 'l2']
+dVM[2101] = ['loss', ['hinge', 'squared_hinge'], 'squared_hinge']
+dVM[2102] = ['dual', [True, False], False]  # dual classification or primal classification
+dVM[2103] = ['tol', np.arange(5e-5, 15e-5, 1e-5), 1e-4]  # tolerance for the stopping criteria
+dVM[2104] = ['C', np.arange(0.1, 2, 0.1), 1]  # Penalty parameter C of the error term
+dVM[2105] = ['multi_class']  # n/a
+dVM[2106] = ['fit_intercept']  # n/a
+dVM[2107] = ['intercept_scaling']  # n/a
+dVM[2108] = ['class_weight']  # n/a
+dVM[2109] = ['verbose']
+dVM[2110] = ['random_state', np.arange(100, 120, 2), 115]  # n/a
+dVM[2111] = ['max_iter']  # n/a
+
+
+# 23 -- LDA
+dVM[2300] = ['solver', ['svd', 'lsqr', 'eigen'], 'svd']
+dVM[2301] = ['shrinkage']  # n/a only work with lsqr or eigen in 2300
+dVM[2302] = ['priors']  # n/a
+dVM[2303] = ['n_components', np.arange(10), 2]  # number of components for dimensionality reduction
+dVM[2304] = ['store_covariance']  # n/a for svd only
+dVM[2305] = ['tol', np.arange(5e-5, 15e-5, 1e-5), 1e-4]  # tolerance for the stopping criteria
+
+
+# 25 -- Naive Bayes Guassian  (There's no parameter for NB Gaussian.)
+
+# 30 -- Logistic Regression Classifier LRC
+dVM[3000] = ['penalty', ['l1', 'l2'], 'l2']
+dVM[3001] = ['dual', [True, False], False]
+dVM[3002] = ['tol', np.arange(5e-5, 15e-5, 1e-5), 1e-4]  # tolerance for the stopping criteria
+dVM[3003] = ['C', np.arange(0.1, 2, 0.1), 1]  # Penalty parameter C of the error term
+dVM[3004] = ['fit_intercept']  # n/a
+dVM[3005] = ['intercept_scaling']  # n/a
+dVM[3006] = ['class_weight']  # n/a
+dVM[3007] = ['random_state', np.arange(100, 120, 2), 115]  # n/a
+dVM[3008] = ['solver', ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'], 'liblinear']
+dVM[3009] = ['max_iter', np.arange(10, 200, 20), 100]
+dVM[3010] = ['verbose']
+dVM[3011] = ['warm_start']
+dVM[3012] = ['n_jobs']
+
+# 31 -- Decision Tree
+dVM[3100] = ['criterion', ['gini', 'entropy'], 'gini']
+dVM[3101] = ['splitter', ['best', 'random'], 'best']
+dVM[3102] = ['max_depth', np.arange(1, 10, 1), 5]
+dVM[3103] = ['min_samples_split', np.arange(2, 100, 10), 2]
+dVM[3104] = ['min_samples_leaf', np.arange(1, 5, 1), 1]
+dVM[3105] = ['min_weight_fraction_leaf', np.arange(0, 0.5, 0.1), 0]  # n/a
+dVM[3106] = ['max_features', np.arange(1, 10, 1), 2]  # other possible  'sqrt','log2'
+dVM[3107] = ['random_state', np.arange(100, 120, 2), 115]
+dVM[3108] = ['max_leaf_nodes']  # n/a
+dVM[3109] = ['min_impurity_decrease']  # n/a
+dVM[3110] = ['min_impurity_split']  # n/a
+dVM[3111] = ['class_weight']  # n/a
+dVM[3112] = ['presort']  # n/a
+
+
+#  32 -- Random Forest
 dVM[3200] = ['n_estimators', np.arange(5, 15, 1), 10]
 dVM[3201] = ['criterion', ['gini', 'entropy'], 'gini']
 dVM[3202] = ['max_features', np.arange(1, 10, 1), 2]  # other possible  'sqrt','log2'
 dVM[3203] = ['max_depth', np.arange(1, 10, 1), 5]
 dVM[3204] = ['min_samples_split', np.arange(2, 100, 10), 2]
+dVM[3205] = ['min_samples_leaf', np.arange(1, 5, 1), 1]
+dVM[3206] = ['min_weight_fraction_leaf', np.arange(0, 0.5, 0.1), 0]
+dVM[3207] = ['max_leaf_nodes']  # n/a
+dVM[3208] = ['min_impurity_decrease']  # n/a
+dVM[3209] = ['bootstrap', [False, True], True]  # n/a
+dVM[3211] = ['oob_score']  # n/a
+dVM[3212] = ['n_jobs']  # n/a
+dVM[3213] = ['random_state', np.arange(100, 120, 2), 115]  # n/a
+dVM[3214] = ['verbose']  # n/a
+dVM[3215] = ['warm_start']  # n/a
+dVM[3216] = ['class_weight']  # n/a
+
+
 GVal.setPARA('dVM_PARA', dVM)
 
 
@@ -99,13 +171,14 @@ def controlPanel_admin(username):
     # GVal.initLoopPARA('data_balance_para_PARA', np.arange(0.1, 0.9, 0.05))
     # GVal.initLoopPARA('random_seed_PARA', np.arange(1, 2S, 1))
     # GVal.initLoopPARA('kick_off_no1_PARA', np.arange(8))
-
+    GVal.initLoopPARA('kick_off_no1_PARA', [0, 1, 5, 7])
     ###########################################
     ### [Loop Parameter, Classifier inner ] #############
     # The loop parameter for the classifier inner parameter must be restricted when only 1 classifier in loop
     # The default Inputvalue matrix [dIM] is set in GVal.py, please refer  the GVal.py for more information
     if len(GVal.getPARA('classifier_list_PARA')) < 2:
-        GVal.initLoopPARA(3204, np.arange(2, 10, 2))
+        # GVal.initLoopPARA(3204, np.arange(2, 10, 2))
+        GVal.initLoopPARA(3201, [])
 
     ###########################################
 
@@ -165,7 +238,7 @@ def controlPanel_admin(username):
 
     # [kick_off_no1_PARA] is the main switcher, the parameter can be set from 0 - 8
     GVal.setPARA('kick_off_no1_PARA', 1)
-    GVal.setDVPARA('kick_off_no1_PARA', 1)
+    GVal.setDVPARA('kick_off_no1_PARA', 0)
     # Recording the processing details for each different methods.
     kick_off_no1_detail = {
         0: '0 - Train: [del] || Validation: [del]',
@@ -216,7 +289,7 @@ def controlPanel_admin(username):
     ### [ Static Parameter #5] #####################
     # Static parameter #5 is the method choosing on the separation strategy of training and validation sets.
 
-    # [split_type_num], set as 1-5, details in the comments below.
+    # [split_type_num], set as 1-5, details in the comments below.0
     GVal.setPARA('split_type_num', 5)
     GVal.setDVPARA('split_type_num', 5)
     # 1:  caseLOO, nonparameters
@@ -226,11 +299,11 @@ def controlPanel_admin(username):
     # 5:  caseRawsplit, parameter test_proportion  (range [ 0 : 1])
 
     # [split_type_para], for each split type, there is a certain parameter, detail is in the comments above
-    GVal.setPARA('split_type_para', 0.25)
+    GVal.setPARA('split_type_para', 0.3)
 
     # [random_seed_PARA], a random seed to get different random series.
     # Later this parameter will be improved and applied an overall random seed. Not only the dataset separation.
-    GVal.setPARA('random_seed_PARA', 17)
+    GVal.setPARA('random_seed_PARA', 25)
     ##########################################
 
     ##########################################
@@ -413,25 +486,26 @@ def processCodeEncoder():
 
     row_dV = loopPARA_codepool.shape[0]
     colomn_dV = loopPARA_codepool.shape[1]
-
     dVPARA_count = cell2dmatlab_jsp([row_dV, colomn_dV + 1], 2, 0)
     dVPARA_index = cell2dmatlab_jsp([colomn_dV], 1, [])
     dVPARA_value = cell2dmatlab_jsp([colomn_dV], 1, [])
     for line_dV in range(row_dV):
         for col_dV in range(colomn_dV):
-            if loopPARA_codepool[line_dV][col_dV] == dVPARA_cache[col_dV]:
+            if str2num(loopPARA_codepool[line_dV][col_dV]) == dVPARA_cache[col_dV]:
                 dVPARA_count[line_dV][col_dV] = 1
             else:
                 dVPARA_count[line_dV][col_dV] = 0
         dVPARA_count[line_dV][colomn_dV] = sum(dVPARA_count[line_dV][0:colomn_dV])
 
         if dVPARA_count[line_dV][colomn_dV] == colomn_dV - 1:
+            # We have all-1 '1'
             dVPARA_index[dVPARA_count[line_dV].index(0)].append(line_dV)
-            dVPARA_value[dVPARA_count[line_dV].index(0)].append(loopPARA_codepool[line_dV][dVPARA_count[line_dV].index(0)])
+            dVPARA_value[dVPARA_count[line_dV].index(0)].append(str2num(loopPARA_codepool[line_dV][dVPARA_count[line_dV].index(0)]))
         elif dVPARA_count[line_dV][colomn_dV] == colomn_dV:
+            # We have all '1'
             for i in range(colomn_dV):
                 dVPARA_index[i].append(line_dV)
-                dVPARA_value[i].append(loopPARA_codepool[line_dV][i])
+                dVPARA_value[i].append(str2num(loopPARA_codepool[line_dV][i]))
     # dVPARA_index contain the index for single parameter analysis (mostly picturing)
     GVal.setPARA('dVPARA_index_PARA', dVPARA_index)
     GVal.setPARA('dVPARA_value_PARA', dVPARA_value)
@@ -471,11 +545,10 @@ def processCodeDecoder(process_code):
 
         loopPARA_serialnum = int(process_code_str[-11:-7])
         for loopPARA_num in range(loopPARA_amount):
-
             # Set the value in current loop according to the process_code
             GVal.setPARA(loopPARA_namecache[loopPARA_num][0], loopPARA_codepool[loopPARA_serialnum][loopPARA_num])
             if type(loopPARA_namecache[loopPARA_num][0]) == int:
-                dVM[loopPARA_namecache[loopPARA_num][0]][2] = loopPARA_codepool[loopPARA_serialnum][loopPARA_num]
+                dVM[loopPARA_namecache[loopPARA_num][0]][2] = str2num(loopPARA_codepool[loopPARA_serialnum][loopPARA_num])
                 print('### Looping Parameter (' + str(loopPARA_num + 1) + '/' + str(loopPARA_amount) + '): [' + str(loopPARA_namecache[loopPARA_num][0]) + ' | ' + dVM[loopPARA_namecache[loopPARA_num][0]][0] + '], with value set: [' + str(loopPARA_codepool[loopPARA_serialnum][loopPARA_num]) + ']')
             else:
                 print('### Looping Parameter (' + str(loopPARA_num + 1) + '/' + str(loopPARA_amount) + '): [' + str(loopPARA_namecache[loopPARA_num][0]) + '], with value set: [' + str(loopPARA_codepool[loopPARA_serialnum][loopPARA_num]) + ']')

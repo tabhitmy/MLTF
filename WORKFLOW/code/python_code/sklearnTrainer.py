@@ -1,4 +1,5 @@
 # sklearnTrainer
+import numpy
 import numpy as np
 import copy
 
@@ -51,7 +52,7 @@ def lda(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = skdisa.LinearDiscriminantAnalysis(solver='svd', n_components=5)
+    clf = skdisa.LinearDiscriminantAnalysis(solver=dVM[2300][0], n_component=dVM[2303][2])
 
     clf.fit(X_tra, y_tra)
     return processLearning(clf, X_tra, y_tra, X_val, y_val)
@@ -113,7 +114,8 @@ def svmLinear(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = sksvm.LinearSVC(C=1, penalty='l2', dual=False)
+    clf = sksvm.LinearSVC(penalty=dVM[2100][2], loss=dVM[2101][2],
+                          dual=dVM[2102][2], tol=dVM[2103][2], C=dVM[2104][2])
     # clf = sksvm.LinearSVC()
     clf.fit(X_tra, y_tra, sample_weight=weights)
 
@@ -168,7 +170,9 @@ def logiRegression(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = sklinmdl.LogisticRegression(penalty='l2', dual=False, C=0.5, max_iter=50, random_state=0, solver='liblinear')
+    clf = sklinmdl.LogisticRegression(penalty=dVM[3000][2], dual=dVM[3001][2], tol=dVM[3002][2],
+                                      C=dVM[3003][2], random_state=dVM[3007][2],
+                                      solver=dVM[3008][2], max_iter=dVM[3009][2])
 
     clf.fit(X_tra, y_tra, sample_weight=weights)
 
@@ -180,7 +184,10 @@ def decisionTree(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = sktree.DecisionTreeClassifier(criterion='entropy', max_features=9, max_depth=3, min_samples_split=30, min_samples_leaf=5, random_state=0)
+    clf = sktree.DecisionTreeClassifier(criterion=dVM[3100][2], splitter=dVM[3101][2],
+                                        max_depth=dVM[3102][2], min_samples_split=dVM[3103][2],
+                                        min_samples_leaf=dVM[3104][2], max_features=dVM[3106][2],
+                                        random_state=dVM[3107][2])
 
     clf.fit(X_tra, y_tra, sample_weight=weights)
 
@@ -195,7 +202,8 @@ def randomForest(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
     clf = skemb.RandomForestClassifier(n_estimators=dVM[3200][2],
                                        criterion=dVM[3201][2], max_features=dVM[3202][2],
                                        max_depth=dVM[3203][2], min_samples_split=dVM[3204][2],
-                                       min_samples_leaf=5, random_state=0)
+                                       min_samples_leaf=dVM[3205][2], min_weight_fraction_leaf=dVM[3206][2],
+                                       random_state=dVM[3213][2])
     # GVal.show('dVM_PARA')
     clf.fit(X_tra, y_tra, sample_weight=weights)
 

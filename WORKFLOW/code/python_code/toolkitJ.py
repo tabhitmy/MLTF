@@ -1,3 +1,4 @@
+import numpy
 import numpy as np
 import copy
 
@@ -54,6 +55,23 @@ def cell2dmatlab_jsp(dims, n, init_value):
 
     return x
 
+
+###################################################
+############# [str2num] ############################
+###################################################
+
+def str2num(x):
+    if type(x) == str or type(x) == numpy.str_:
+        try:
+            yr = float(x)
+            if len(str(yr)) == len(x):
+                return yr
+            else:
+                return int(x)
+        except ValueError:
+            return x
+    else:
+        return x
 ###################################################
 ############# [firfilter_jsp] ############################
 ###################################################

@@ -1,3 +1,4 @@
+import numpy
 import numpy as np
 
 
@@ -10,6 +11,7 @@ import matplotlib.pylab as pylab
 
 import GVal
 from toolkitJ import cell2dmatlab_jsp
+import copy
 
 
 def featurePlotting(label_all, online_fea_all, processCode):
@@ -102,7 +104,7 @@ def resultPlotting(FRAP, processCode):
 
             plt.subplot(121)
             plt.scatter(X_tra[p0_index_tra, fea1], X_tra[p0_index_tra, fea2], marker=markerlist1[0], color=colorlist2[0], label='label 0', linewidths=2)
-            if GVal.getPARA('kick_off_no1_PARA') not in [0, 1, 2]:
+            if int(GVal.getPARA('kick_off_no1_PARA')) not in [0, 1, 2]:
                 plt.scatter(X_tra[p1_index_tra, fea1], X_tra[p1_index_tra, fea2], marker=markerlist1[1], color=colorlist2[1], label='label 1', linewidths=2)
             plt.scatter(X_tra[p2_index_tra, fea1], X_tra[p2_index_tra, fea2], marker=markerlist1[2], color=colorlist2[2], label='label 2', linewidths=2)
             plt.scatter(X_tra[p3_index_tra, fea1], X_tra[p3_index_tra, fea2], marker=markerlist1[3], color=colorlist2[3], label='label 3', linewidths=2)
@@ -114,13 +116,13 @@ def resultPlotting(FRAP, processCode):
             plt.ylabel(online_fea_name[fea2_num], FontProperties=zhfont)
             plt.title('Training Set \n' +
                       '[0]-' + str(len(p0_index_tra)) + ' || [1]-' + str(len(p1_index_tra)) + ' || [2]-' + str(len(p2_index_tra)) + ' || [3]-' + str(len(p3_index_tra)) + '\n' +
-                      GVal.getPARA('kick_off_no1_detail')[GVal.getPARA('kick_off_no1_PARA')]
+                      GVal.getPARA('kick_off_no1_detail')[int(GVal.getPARA('kick_off_no1_PARA'))]
                       )
 
             # Validation set
             plt.subplot(122)
             plt.scatter(X_val[p0_index_val, fea1], X_val[p0_index_val, fea2], marker=markerlist1[0], color=colorlist2[0], label='label 0', linewidths=2)
-            if GVal.getPARA('kick_off_no1_PARA') not in [0, 3, 6]:
+            if int(GVal.getPARA('kick_off_no1_PARA')) not in [0, 3, 6]:
                 plt.scatter(X_val[p1_index_val, fea1], X_val[p1_index_val, fea2], marker=markerlist1[1], color=colorlist2[1], label='label 1', linewidths=2)
             plt.scatter(X_val[p2_index_val, fea1], X_val[p2_index_val, fea2], marker=markerlist1[2], color=colorlist2[2], label='label 2', linewidths=2)
             plt.scatter(X_val[p3_index_val, fea1], X_val[p3_index_val, fea2], marker=markerlist1[3], color=colorlist2[3], label='label 3', linewidths=2)
@@ -176,14 +178,23 @@ def FRAPPlotting(res):
     for i in range(L_pic):
         h = plt.figure(num=L_pic, figsize=(20, 9.3))
 
-        xdata_raw = dVPARA_value[i]
-
+        xdata_rawraw = dVPARA_value[i]
+        xdata_rawraw_index = np.arange(len(xdata_rawraw))
+        print(type(xdata_rawraw[0]))
+        if type(xdata_rawraw[0]) == str or type(xdata_rawraw[0]) == numpy.str_:
+            xdata_raw = np.arange(len(xdata_rawraw))
+        else:
+            xdata_raw = copy.deepcopy(xdata_rawraw)
+        print(xdata_rawraw)
+        print(xdata_raw)
         ydata_raw = cell2dmatlab_jsp([7], 1, [])
 
         for dV_index in dVPARA_index[i]:
             for k in range(7):
                 ydata_raw[k] += [res[dV_index][3][k]]
 
+        print(xdata_raw)
+        print(ydata_raw)
         xdata, ydata = zipSort(xdata_raw, ydata_raw)
 
         plt.plot(xdata, ydata[0], marker=markerlist[0], color=colorlist[0], linestyle=linelist[0], label='[P] Precision')
@@ -196,6 +207,7 @@ def FRAPPlotting(res):
             xlabeltext = 'Classifier: [ ' + res[0][1] + ' ] | Parameter: [ ' + dVM[loopPARA_namecache[i][0]][0] + ' ]'
         else:
             xlabeltext = 'General Parameter: [ ' + loopPARA_namecache[i][0] + ' ]'
+        plt.xticks(xdata_rawraw_index, xdata_rawraw, rotation=0)
         plt.xlabel(xlabeltext, Fontsize=ftsize)
         plt.ylabel('FRAP Value', Fontsize=ftsize)
         plt.grid()
