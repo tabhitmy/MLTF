@@ -1,5 +1,5 @@
 # NFDAkey.py
-keycontent = '4rfvbnm'
+keycontent = '234'
 import os
 import sys
 
