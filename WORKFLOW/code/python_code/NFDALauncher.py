@@ -16,6 +16,8 @@ import time
 from time import clock
 
 from toolkitJ import cell2dmatlab_jsp
+from toolkitJ import Logger_J
+
 import GVal
 from controlPanel_NFDA_J import controlPanel
 from controlPanelSubFunc_NFDA_J import initializationProcess
@@ -275,14 +277,31 @@ def mainProcesser(process_code):
         res_temp[0][1:4] = classifier_frame[int(str(classifier_num)[0])](classifier_num, X_train, y_train, X_validation, y_validation, path)
         # Sample: res[fold number][infoserial]
         # infoserial :  1- model object   2- Training Score  3- FRAP
-        if N_lplb_count == 0:
+        resCalMethodList = {
+            'median': np.median,
+            'mean': np.mean
+        }
+        if N == 1:
             res = res_temp
         else:
-            res += res_temp
+            if N_lplb_count == 0:
+                res_mid = res_temp
+            elif N_lplb_count < N - 1:
+                res_mid += res_temp
+            elif N_lplb_count == N - 1:
+                res_mid += res_temp
+                res = res_temp
+                for ires in range(len(res[0][3])):
+                    temptemp = []
+                    for iN in range(N):
+                        # if np.logical_and(res_mid[iN][3][ires] != 0.0, res_mid[iN][3][ires] != 1.0):
+                        if res_mid[iN][3][ires] not in [0.0, 1.0, -1.0]:
+                            temptemp.append(res_mid[iN][3][ires])
+                    res[0][3][ires] = resCalMethodList[GVal.getPARA('resCalMethod_PARA')](temptemp)
 
         if FLAG['plotting_flag']:
             FRAP = res_temp[0][3]
-            resultPlotting(FRAP, process_code)
+            # resultPlotting(FRAP, process_code)
         else:
             print('### No plotting, exit feature plotting...')
 
@@ -290,15 +309,20 @@ def mainProcesser(process_code):
 
     return res, N
 
+
 if __name__ == "__main__":
     start = clock()
 
     # Gain the path prefix, this is added to suit up different processing environment.
     path_prefix, username = initializationProcess()
 
+    sys.stdout = Logger_J(path_prefix + 'GaoMY/tlog.txt')
+
+    print('### Log starting!')
+    print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     # Define the basic path.
     path = {
-        'data_path': (path_prefix + 'public/EEG_RawData/'),
+        'data_path': (path_prefix + 'public/labcompute/BK_OLD_EEG_RawData/'),
         'label_path': (path_prefix + 'public/backend_data/Label/'),
         'online_fea_path': (path_prefix + 'public/backend_data/online_new/'),
         'parent_path': (path_prefix + username + '/EXECUTION/NFDA/code/')
@@ -320,7 +344,6 @@ if __name__ == "__main__":
 
     # RawData folder list reading.
     data_file = sorted(os.listdir(path['data_path']))
-
     # Processing the Control Panel! All the important configuration are pre-defined in control panel.
     # Refer the file controlPanel_NFDA_J.py for more details.
     # [FLAG] is a flag controller, to switch on/off several processing procedure.
@@ -345,7 +368,7 @@ if __name__ == "__main__":
         else:
             res += res_singleLOOP
         L_lplb_count += 1
-
+        print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
         time.sleep(0.001)
 
     if FLAG['plotting_flag']:
@@ -367,9 +390,9 @@ if __name__ == "__main__":
     res_c = 1
     for i in range(L_total):
         res_lplb_count += 1
-        if (res_lplb_count % N) == 1:
-            print('=' * 15 + ' [Process Pack NO.' + str(res_c) + ', ' + str(N) + ' folds in total] ' + '=' * 105)
-            res_c += 1
+        # if (res_lplb_count % N) == 1:
+        #     print('=' * 15 + ' [Process Pack NO.' + str(res_c) + ', ' + str(N) + ' folds in total] ' + '=' * 105)
+        #     res_c += 1
         F_res_store[i, 0] = res[i][3][0]
         F_res_store[i, 1] = res[i][3][1]
         F_res_store[i, 2] = res[i][3][2]
@@ -388,20 +411,20 @@ if __name__ == "__main__":
                '] | [Classifier: ' + res[i][1] + ' ' * (17 - len(res[i][1])) +
                ']###'
                ))
-        if (res_lplb_count % N) == 0:
-            print('-' * 15 + ' [MEAN OUTPUT ] ' + '-' * 128)
-            print(('###[P: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 0]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 0]) / N, 4)))) +
-                   ' || A: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 1]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 1]) / N, 4)))) +
-                   ' || R: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 2]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 2]) / N, 4)))) +
-                   ' || MA: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 3]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 3]) / N, 4)))) +
-                   ' || FA: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 4]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 4]) / N, 4)))) +
-                   ' || F1: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 5]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 5]) / N, 4)))) +
-                   ' || F' + str(beta) + ': ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 6]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 6]) / N, 4)))) +
-                   '] | [PCode: ' + str(res[res_lplb_count - 1][0]) + ' ' * (10 - len(str(res[res_lplb_count - 1][0]))) +
-                   '] | [Classifier: ' + res[res_lplb_count - 1][1] + ' ' * (17 - len(res[res_lplb_count - 1][1])) +
-                   ']###'
-                   ))
-            print('=' * 159)
+        # if (res_lplb_count % N) == 0:
+        #     print('-' * 15 + ' [MEAN OUTPUT ] ' + '-' * 128)
+        #     print(('###[P: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 0]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 0]) / N, 4)))) +
+        #            ' || A: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 1]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 1]) / N, 4)))) +
+        #            ' || R: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 2]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 2]) / N, 4)))) +
+        #            ' || MA: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 3]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 3]) / N, 4)))) +
+        #            ' || FA: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 4]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 4]) / N, 4)))) +
+        #            ' || F1: ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 5]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 5]) / N, 4)))) +
+        #            ' || F' + str(beta) + ': ' + str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 6]) / N, 4)) + ' ' * (6 - len(str(round(sum(F_res_store[res_lplb_count - N:res_lplb_count, 6]) / N, 4)))) +
+        #            '] | [PCode: ' + str(res[res_lplb_count - 1][0]) + ' ' * (10 - len(str(res[res_lplb_count - 1][0]))) +
+        #            '] | [Classifier: ' + res[res_lplb_count - 1][1] + ' ' * (17 - len(res[res_lplb_count - 1][1])) +
+        #            ']###'
+        #            ))
+        #     print('=' * 159)
 
     print('#' * 159)
     print('-' * 15 + ' [BIG MEAN OUTPUT ] ' + '-' * 124)

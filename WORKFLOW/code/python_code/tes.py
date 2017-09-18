@@ -10,56 +10,15 @@
 import numpy
 import numpy as np
 
+a = []
 
-def str2num(x):
-    if type(x) == str or type(x) == numpy.str_:
-        try:
-            yr = float(x)
+b = ('s', 12)
+c = ('d', 13)
+print(a)
+print(b)
 
-            if len(str(yr)) == len(x):
-                print('# x is a float')
-                return yr
-            else:
-                print('# x is a integer')
-                return int(x)
-        except ValueError:
-            print('# x is not a number. It is a string.')
-            return x
-    else:
-        print('# pass')
-        return x
-
-
-x = 12
-print('-' * 100)
-print(type(str2num(x)))
-print(str2num(x))
-
-x = '12.00'
-print('-' * 100)
-print(type(str2num(x)))
-print(str2num(x))
-
-
-x = '12.124'
-print('-' * 100)
-print(type(str2num(x)))
-print(str2num(x))
-
-
-x = 12.00
-print('-' * 100)
-print(type(str2num(x)))
-print(str2num(x))
-
-
-x = '12.450086000'
-print('-' * 100)
-print(type(str2num(x)))
-print(str2num(x))
-
-
-x = 'cxv'
-print('-' * 100)
-print(type(str2num(x)))
-print(str2num(x))
+print(type(b))
+a.append(b)
+print(a)
+a.append(c)
+print(a)

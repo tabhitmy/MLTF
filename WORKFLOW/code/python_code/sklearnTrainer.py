@@ -10,6 +10,7 @@ from matplotlib.font_manager import FontProperties
 zhfont = FontProperties(fname="/usr/share/fonts/cjkuni-ukai/ukai.ttc")  # 图片显示中文字体
 mpl.use('Agg')
 
+import pprint
 
 import sklearn.model_selection as skmdls
 import sklearn.ensemble as skemb
@@ -39,7 +40,7 @@ def adaboost(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
     }
 
     clf = skemb.AdaBoostClassifier(sktree.DecisionTreeClassifier(max_depth=2, min_samples_split=30, min_samples_leaf=5),
-                                   algorithm='SAMME', n_estimators=50, learning_rate=0.7)
+                                   algorithm=dVM[2702][2], n_estimators=dVM[2700][2], learning_rate=dVM[2701][2], random_state=dVM[2703][2])
 
     clf.fit(X_tra, y_tra)
 
@@ -52,7 +53,7 @@ def lda(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
 
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
 
-    clf = skdisa.LinearDiscriminantAnalysis(solver=dVM[2300][0], n_component=dVM[2303][2])
+    clf = skdisa.LinearDiscriminantAnalysis(solver=dVM[2300][2], n_components=dVM[2303][2])
 
     clf.fit(X_tra, y_tra)
     return processLearning(clf, X_tra, y_tra, X_val, y_val)
@@ -206,8 +207,48 @@ def randomForest(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
                                        random_state=dVM[3213][2])
     # GVal.show('dVM_PARA')
     clf.fit(X_tra, y_tra, sample_weight=weights)
+    return processLearning(clf, X_tra, y_tra, X_val, y_val)
+
+
+def bagging(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
+
+    y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
+
+    clf = skemb.BaggingClassifier(base_estimator=sktree.DecisionTreeClassifier(max_depth=2, min_samples_split=30, min_samples_leaf=5),
+                                  n_estimators=dVM[3300][2], max_samples=dVM[3301][2], max_features=dVM[3302][2],
+                                  bootstrap=dVM[3303][2],  random_state=dVM[3308][2])
+    clf.fit(X_tra, y_tra, sample_weight=weights)
+    return processLearning(clf, X_tra, y_tra, X_val, y_val)
+
+
+def voting(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
+
+    #
+    classifier_list = GVal.getPARA('classifier_list_PARA')
+    # dVM[3400] = ['estimators', [21, 23, 25, 30, 31], [21, 23, 25, 30, 31]]
+    estims = []
+    for i in range(len(dVM[3400][2])):
+        clf_temp = (classifier_list[dVM[3400][2][i]][1], classifier_list[int(str(dVM[3400][2][i])[0:2])][0](X_tra, y_tra, X_val, y_val, index_no, dVM[3400][2][i])[0])
+        estims.append(clf_temp)
+
+    y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
+    clf = skemb.VotingClassifier(estimators=estims, voting=dVM[3401][2])
+    clf.fit(X_tra, y_tra)
 
     return processLearning(clf, X_tra, y_tra, X_val, y_val)
+
+
+def gradboost(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
+
+    y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
+
+    clf = skemb.GradientBoostingClassifier(loss=dVM[3500][2], learning_rate=dVM[3501][2],
+                                           n_estimators=dVM[3502][2], max_depth=dVM[3503][2], criterion=dVM[3504][2],
+                                           min_samples_split=dVM[3505][2], min_samples_leaf=dVM[3506][2],
+                                           subsample=dVM[3508][2], random_state=dVM[3515][2])
+    clf.fit(X_tra, y_tra, sample_weight=weights)
+    return processLearning(clf, X_tra, y_tra, X_val, y_val)
+
 
 ###################################
 # Main  #############################
@@ -239,9 +280,12 @@ def sklearnTrainer(classifier_num, X_train_raw, Y_train_raw, X_valid_raw, Y_vali
         29: [sgdClassifier, 'SGD Classifier'],
         30: [logiRegression, 'Logistic Regression'],
         31: [decisionTree, 'Decision Tree'],
-        32: [randomForest, 'Random Forest']
+        32: [randomForest, 'Random Forest'],
+        33: [bagging, 'bagging with DT'],
+        34: [voting, 'Voter'],
+        35: [gradboost, 'Gradient Tree Boosting']
     }
-
+    GVal.setPARA('classifier_list_PARA', classifier_list)
     # classifier serial code: [[model], [training score], [predicting rate]]
     clf_cache = {
         21: cell2dmatlab_jsp([1], 1, []),
@@ -263,7 +307,9 @@ def sklearnTrainer(classifier_num, X_train_raw, Y_train_raw, X_valid_raw, Y_vali
         29: cell2dmatlab_jsp([1], 1, []),
         30: cell2dmatlab_jsp([1], 1, []),
         31: cell2dmatlab_jsp([1], 1, []),
-        32: cell2dmatlab_jsp([1], 1, [])
+        32: cell2dmatlab_jsp([1], 1, []),
+        33: cell2dmatlab_jsp([1], 1, []),
+        34: cell2dmatlab_jsp([1], 1, [])
     }
 
     print('### With model: [' + classifier_list[classifier_num][1] + ']')

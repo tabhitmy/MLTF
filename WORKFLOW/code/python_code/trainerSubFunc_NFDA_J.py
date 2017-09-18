@@ -12,7 +12,10 @@ import GVal
 ####################################################
 
 def fScore(beta, P, R):
-    F = (1 + beta**2) * (P * R) / ((beta**2) * P + R)
+    if ((beta**2) * P + R) == 0:
+        F = -1
+    else:
+        F = (1 + beta**2) * (P * R) / ((beta**2) * P + R)
     return F
 
 
@@ -60,11 +63,29 @@ def calculateFRAP(Z, y_val):
     FP = len(np.nonzero(np.logical_and((Z == 1), (y_val == 0)))[0])
     FN = len(np.nonzero(np.logical_and((Z == 0), (y_val == 1)))[0])
 
-    P = TP / (TP + FP)
-    A = (TP + TN) / (TP + TN + FP + FN)
-    R = TP / (TP + FN)
-    MA = 1 - R
-    FA = 1 - P
+    if TP + FP == 0:
+        P = -1
+        FA = -1
+    else:
+        P = TP / (TP + FP)
+        FA = 1 - P
+
+    if (TP + TN + FP + FN) == 0:
+        A = -1
+    else:
+        A = (TP + TN) / (TP + TN + FP + FN)
+
+    if TP + FN == 0:
+        R = -1
+        MA = -1
+    else:
+        R = TP / (TP + FN)
+        MA = 1 - R
+    # P = TP / (TP + FP)
+    # A = (TP + TN) / (TP + TN + FP + FN)
+    # R = TP / (TP + FN)
+    # MA = 1 - R
+    # FA = 1 - P
     F1 = fScore(1, P, R)
     beta = GVal.getPARA('beta_PARA')
     F = fScore(beta, P, R)
@@ -82,7 +103,7 @@ def calculateFRAP(Z, y_val):
     return FRAP
 
 
-def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
+def dataRegulationSKL(y_tra_in, X_tra_in, y_val_in, X_val_in, index_no):
     # This function is working to deal with several data problems below:
     # 1. Processing with the transitional frame (no1)
     # 2. Processing wth label weights
@@ -93,11 +114,11 @@ def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
 
     # Label weight issue
     if weights_on:
-        weights = copy.deepcopy(y_tra)
+        weights = copy.deepcopy(y_tra_in)
         for key in weight_list.keys():
             weights[np.nonzero(weights == key)[0]] = weight_list[key]
     else:
-        weights = np.ones(y_tra.shape)
+        weights = np.ones(y_tra_in.shape)
 
     # Transitional frame issue
     kick_off_no1_switcher = {
@@ -112,8 +133,14 @@ def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
         8: ko1processor8
     }
 
+    # Avoiding the overwrite problem when multiply excuting dataRegulationSKL
+    y_tra_temp = copy.deepcopy(y_tra_in)
+    X_tra_temp = copy.deepcopy(X_tra_in)
+    y_val_temp = copy.deepcopy(y_val_in)
+    X_val_temp = copy.deepcopy(X_val_in)
+
     print('###  Label 1 Processing Method: ' + GVal.getPARA('kick_off_no1_detail')[int(GVal.getPARA('kick_off_no1_PARA'))])
-    y_tra, X_tra, y_val, X_val, weights = kick_off_no1_switcher[int(GVal.getPARA('kick_off_no1_PARA'))](y_tra, X_tra, y_val, X_val, weights, index_no)
+    y_tra, X_tra, y_val, X_val, weights = kick_off_no1_switcher[int(GVal.getPARA('kick_off_no1_PARA'))](y_tra_temp, X_tra_temp, y_val_temp, X_val_temp, weights, index_no)
 
     X_tra_res = copy.deepcopy(X_tra)
     X_val_res = copy.deepcopy(X_val)
@@ -128,6 +155,17 @@ def dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no):
     y_tra[np.nonzero(y_tra > 0)[0]] = 1
     y_val[np.nonzero(y_val > 0)[0]] = 1
 
+    # Checking code, retain for a while .
+    # print('X train')
+    # print(X_tra.shape)
+    # print('y train')
+    # print(y_tra.shape)
+    # print(max(y_tra), min(y_tra))
+    # print('X validation')
+    # print(X_val.shape)
+    # print('y validation')
+    # print(y_val.shape)
+    # print(max(y_val), min(y_val))
     return y_tra, X_tra, y_val, X_val, weights
 
 
@@ -220,6 +258,7 @@ def processLearning(mdl, X_tra, y_tra, X_val, y_val):
     Z = mdl.predict(X_val)
     score = mdl.score(X_tra, y_tra)
     FRAP = calculateFRAP(Z, y_val)
+
     Z_tra = mdl.predict(X_tra)
     GVal.setPARA('Z_tra_res_PARA', Z_tra)
     GVal.setPARA('Z_res_PARA', Z)

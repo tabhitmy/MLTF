@@ -32,7 +32,7 @@ def initLoopPARA(name_PARA, value_PARA):
             print(['Warning! The input loop parameter: ' + str(name_PARA) + ' is not the current set classifier: ' + str(getPARA('classifier_list_PARA')) + '. Invalid input will not be processed.'])
             return 0
 
-    loopPARA_cache[name_PARA] = [np.round(value_PARA, decimals=2), max([len(value_PARA), 1])]
+    loopPARA_cache[name_PARA] = [np.round(value_PARA, decimals=5), max([len(value_PARA), 1])]
 
     if name_PARA == 'cleanup':
         loopPARA_cache = {}
@@ -76,6 +76,7 @@ def appendPARA(name_PARA, value_PARA):
 
 
 def show(*args):
+    setPARA('DVPARA', DVPARA)
     # A tool to show certain parameters' names and theirs values in the command line.
     # Input *args takes zero, one or more input variables, in string format, defined as parameter names in PARA.
     # When input is void, show all the parameters in the PARA at the calling time of GVal.show()

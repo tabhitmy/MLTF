@@ -80,10 +80,25 @@ def caseRawsplit(X, Y, para):
     if test_portion > 1 or test_portion < 0:
         print('Warning! The input test_portion is not in range[0,1], set the default test_portion as 0.25')
         testportion = 0.25
-    N = 1
-
-    X_train, X_test, y_train, y_test = skmdls.train_test_split(X, Y, test_size=test_portion, random_state=int(GVal.getPARA('random_seed_PARA')))
-    return [X_train], [X_test], [y_train], [y_test], N
+    N = len(GVal.getPARA('random_seed_PARA'))
+    for i in range(N):
+        X_train_temp, X_test_temp, y_train_temp, y_test_temp = skmdls.train_test_split(X, Y, test_size=test_portion, random_state=int(GVal.getPARA('random_seed_PARA')[i]))
+        # print(X_train_temp.shape)
+        # print(X_test_temp.shape)
+        # print(y_train_temp.shape)
+        # print(y_train_temp.shape)
+        # print('$@%' * 40)
+        if i == 0:
+            X_train = [X_train_temp]
+            X_test = [X_test_temp]
+            y_train = [y_train_temp]
+            y_test = [y_test_temp]
+        else:
+            X_train += [X_train_temp]
+            X_test += [X_test_temp]
+            y_train += [y_train_temp]
+            y_test += [y_test_temp]
+    return X_train, X_test, y_train, y_test, N
 
 
 def datasetSeparation(X, Y, split_type, para):

@@ -1,5 +1,6 @@
 NFDALauncher.py
     [PATH]
+    initializationProcss()
     controlPanel()
         processCodeEncoder()
             iterCodePool()
@@ -17,7 +18,7 @@ NFDALauncher.py
             caseStratifidKFold()
             caseRawsplit()
         }
-                train_test_constructor()
+            train_test_constructor()
 
         labelProcessor()
         featurePlotting()
@@ -30,7 +31,6 @@ NFDALauncher.py
         {
             downSamplingNega()
         }
-
 
     {
         sklearnTrainer()
@@ -47,13 +47,13 @@ NFDALauncher.py
             decisionTree()
             randomForest()
         }
-                dataRegulationSKL()
-                    ko1processor()
-                sci-kit Learn Default Functions...
-                processLearning()
-                    calculateFRAP()
-                        fScore()
-        kerasTrainer()        
+        dataRegulationSKL()
+        ko1processor()
+        sci - kit Learn Default Functions...
+        processLearning()
+        calculateFRAP()
+        fScore()
+        kerasTrainer()
         '  Not in detail at this moment Aug 24th,2017 '
     }
 

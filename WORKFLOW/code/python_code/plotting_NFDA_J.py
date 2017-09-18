@@ -158,7 +158,7 @@ def FRAPPlotting(res):
     loopPARA_namecache = GVal.getPARA('loopPARA_namecache_PARA')
     L_pic = len(dVPARA_index)
     # FontSize
-    ftsize = 18
+    ftsize = 20
     # color
     colorlist = ['#0203e2', '#6ecb3c', '#fd3c06', '#000000', '#000000']
     # marker
@@ -174,27 +174,25 @@ def FRAPPlotting(res):
         'legend.fontsize': '15',
         # 'figure.figsize'   : '12, 9'    # set figure size
     }
-    pylab.rcParams.update(params)
+    # pylab.rcParams.update(params)
     for i in range(L_pic):
         h = plt.figure(num=L_pic, figsize=(20, 9.3))
 
         xdata_rawraw = dVPARA_value[i]
-        xdata_rawraw_index = np.arange(len(xdata_rawraw))
-        print(type(xdata_rawraw[0]))
+
         if type(xdata_rawraw[0]) == str or type(xdata_rawraw[0]) == numpy.str_:
             xdata_raw = np.arange(len(xdata_rawraw))
+            xdata_rawraw_index = np.arange(len(xdata_rawraw))
         else:
             xdata_raw = copy.deepcopy(xdata_rawraw)
-        print(xdata_rawraw)
-        print(xdata_raw)
+            xdata_rawraw_index = xdata_raw
+
         ydata_raw = cell2dmatlab_jsp([7], 1, [])
 
         for dV_index in dVPARA_index[i]:
             for k in range(7):
                 ydata_raw[k] += [res[dV_index][3][k]]
 
-        print(xdata_raw)
-        print(ydata_raw)
         xdata, ydata = zipSort(xdata_raw, ydata_raw)
 
         plt.plot(xdata, ydata[0], marker=markerlist[0], color=colorlist[0], linestyle=linelist[0], label='[P] Precision')
@@ -202,17 +200,21 @@ def FRAPPlotting(res):
         plt.plot(xdata, ydata[2], marker=markerlist[2], color=colorlist[2], linestyle=linelist[2], label='[R] Recall')
         plt.plot(xdata, ydata[5], marker=markerlist[3], color=colorlist[3], linestyle=linelist[3], label='[F1] score')
         plt.plot(xdata, ydata[6], marker=markerlist[4], color=colorlist[4], linestyle=linelist[4], label=['[F' + str(beta) + '] score'])
-        plt.legend(loc='best', prop=zhfont)
+        legend = plt.legend(loc='best', prop={'size': 18})
+        # legend.get_title().set_fontsize(fontsize=50)
+        # h.legend(Fontsize=ftsize)
         if type(loopPARA_namecache[i][0]) == int:
             xlabeltext = 'Classifier: [ ' + res[0][1] + ' ] | Parameter: [ ' + dVM[loopPARA_namecache[i][0]][0] + ' ]'
         else:
-            xlabeltext = 'General Parameter: [ ' + loopPARA_namecache[i][0] + ' ]'
+            xlabeltext = 'Classifier: [ ' + res[0][1] + ' ] | General Parameter: [ ' + loopPARA_namecache[i][0] + ' ]'
         plt.xticks(xdata_rawraw_index, xdata_rawraw, rotation=0)
         plt.xlabel(xlabeltext, Fontsize=ftsize)
         plt.ylabel('FRAP Value', Fontsize=ftsize)
+        plt.title('Recording Envorinment: ' + GVal.getPARA('recordname'), Fontsize=ftsize)
+        plt.ylim(0, 1.05)
         plt.grid()
         plt.show()
-        plt.savefig((path['fig_path'] + 'FRAP_' + str(loopPARA_namecache[i][0]) + '.png'))
+        plt.savefig((path['fig_path'] + 'FRAP_' + str(loopPARA_namecache[i][0]) + '_' + str(GVal.getPARA('process_code_PARA')) + '.png'))
         print('Picture' + str(i) + 'Saved!')
         plt.close(h)
 

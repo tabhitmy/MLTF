@@ -1,7 +1,8 @@
 import numpy
 import numpy as np
 import copy
-
+import sys
+import time
 # Update Information:
 # July 6th, 2017, Gao
 # Fix a bug in cell2dmatlab_jsp
@@ -54,11 +55,29 @@ def cell2dmatlab_jsp(dims, n, init_value):
     x = cell2dmatlab_deepcopy(n, x, y, dims)
 
     return x
+###################################################
+############# [Logger_J] ############################
+###################################################
 
+
+class Logger_J(object):
+     # Automaticallly
+
+    def __init__(self, filename='Default.log'):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        pass
 
 ###################################################
 ############# [str2num] ############################
 ###################################################
+
 
 def str2num(x):
     if type(x) == str or type(x) == numpy.str_:
