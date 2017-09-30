@@ -1,24 +1,24 @@
-# from __future__ import print_function
 
-# from sklearn import datasets
-# from sklearn.model_selection import train_test_split
-# from sklearn.model_selection import GridSearchCV
-# from sklearn.metrics import classification_report
-# from sklearn.svm import SVC
 
-# print(__doc__)
 import numpy
 import numpy as np
-
-a = []
-
-b = ('s', 12)
-c = ('d', 13)
+import time
+print('    $$$ WELCOME to MLTF(v0.1) ! $$$')
+print('    <Author: Josep GAO> ')
+print('    <Copyright Reserved.>')
+timenow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+print('    <' + timenow + '>')
+a = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 print(a)
+print(a[:-5])
+print(a[-5:])
+# print(a[11:13] + a[14:16])
+b = (a[11:13] + a[14:16])
 print(b)
+# c = input('try code!')
+# if c == b:
+#     print('y')
 
-print(type(b))
-a.append(b)
-print(a)
-a.append(c)
-print(a)
+# else:
+#     print('n')
+#     print(time.localtime(time.time()))

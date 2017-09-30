@@ -2,7 +2,7 @@
 clear
 
 username="GaoMY" 
-computeno=96 # please use 93 or 95 or 96
+computeno=95 # please use 93 or 95 or 96
 
 pathprefix="/EXECUTION/NFDA/code"
 serverpath="~/$username$pathprefix"
@@ -24,7 +24,7 @@ ssh -l labcompute 192.168.0.$computeno "mkdir $serverpath/python_code/fig/; rm $
 wait 
 ssh -l labcompute 192.168.0.$computeno "mkdir $serverpath/python_code/data/"
 wait
-ssh -l labcompute 192.168.0.$computeno "rm -rf  ~/$username/tlog.txt"
+ssh -l labcompute 192.168.0.$computeno "rm -rf  $serverpath/tlog.txt"
 wait 
 
 if [ "$username" = "GaoMY" ]; then
@@ -64,14 +64,15 @@ wait
 echo "########################################"
 echo "######### [ Computing ... ] #########"
 echo "########################################"
-echo "Please check in ~/$username/tlog.txt for the log"
+echo "Please check in ../tlog.txt for the log"
+
 ssh -l labcompute 192.168.0.$computeno "export PYTHONPATH=$PYTHONPATH:\"/usr/local/python36/Python3.6.1/lib/python3.6/site-packages\"; export USERNAME=$username; python3 $serverpath/python_code/NFDALauncher.py"
 wait
 echo "########################################"
 echo "######### [Done! Fetching ...] #########"
 echo "########################################"
 scp -r labcompute@192.168.0.$computeno:$serverpath/python_code/fig $localpath/python_code/
-scp -r labcompute@192.168.0.$computeno:~/$username/tlog.txt $localpath/python_code/fig/
+scp -r labcompute@192.168.0.$computeno:$serverpath/tlog.txt $localpath/
 
 
 

@@ -14,7 +14,7 @@ def controlPanel(username):
 
         # 所有参数的参考输入关注使用手册，或者controlPanelSubFunc_NFDA_J同参数定义处，有相关详细注释
         # 参数一，数据读取序列
-        GVal.setPARA('recording_index_list_PARA', [np.arange(1, 7, 1)])
+        GVal.setPARA('recording_index_list_PARA', [np.arange(1, 137, 1)])
         # 参数二，分类器
         GVal.setPARA('classifier_list_PARA', [23])
 
@@ -41,7 +41,8 @@ def controlPanel(username):
         # 参数五，输入特征
         # Select several features from the online feature file
         # [online_fea_selectindex_PARA], defined by an array, it contains the colomn number of each feature in the created feature matrix
-        GVal.setPARA('online_fea_selectindex_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]))
+        # GVal.setPARA('online_fea_selectindex_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]))
+        GVal.setPARA('online_fea_selectindex_PARA', np.array([11, 12, 16, 17]))
         # GVal.setPARA('online_fea_selectindex_PARA', np.array([16, 17]))
 
         # [online_fea_name_PARA] is the name for all those features in the created feature matrix. Breif info is attached in the comments below.

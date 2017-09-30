@@ -4,8 +4,8 @@ import copy
 import sys
 import time
 # Update Information:
-# July 6th, 2017, Gao
-# Fix a bug in cell2dmatlab_jsp
+# Sept 15th, 2017, Gao
+# Add logger J
 
 
 ###################################################

@@ -141,15 +141,15 @@ def controlPanel_admin(username):
     # Loop Parameters 1 is the different recording groups.
     # It is tuned by only the serial number below:
     # 0 - 99 Lab Environment (High SNR)
-    # 100 - 137  Other Environment (High SNR)
-    # 138 - 234 Real Industrial Environment  (Low SNR)
+    # 100 - 136 Other Environment (High SNR)
+    # 137 - 200 Real Industrial Environment  (Low SNR)
 
     GVal.setPARA(
         'recording_index_list_PARA',
         [
             # np.array([21])
             np.arange(1, 137, 1),
-            # np.arange(138, 234, 1),
+            # np.arange(137, 199, 1)
             # np.arange(1, 7, 1)
             # np.arange(147, 155, 1)
 
@@ -203,10 +203,11 @@ def controlPanel_admin(username):
             # 21,
             # 24,
             # 25,
+            23
             # 30,
             # 27
             # 32,
-            31
+            # 23
             # 31
             # 23
             # 33,
@@ -225,11 +226,10 @@ def controlPanel_admin(username):
     GVal.setPARA('codepoolCreator', 'plain')
 
     # GVal.initLoopPARA('noconfident_frame_process_PARA',  np.arange(6))
-    GVal.initLoopPARA('data_balance_para_PARA', np.arange(0.01, 0.99, 0.04))
-    # GVal.initLoopPARA('split_type_para', np.arange(0.01,0.99,0.04))
+    # GVal.initLoopPARA('data_balance_para_PARA', np.arange(0.01, 0.99, 0.04))
+    # GVal.initLoopPARA('split_type_para', np.arange(0.01, 0.99, 0.04))
 
-
-    GVal.initLoopPARA('kick_off_no1_PARA', [0,1,5,7])
+    # GVal.initLoopPARA('kick_off_no1_PARA', [0, 1, 5, 7])
     ###########################################
     ### [Loop Parameter, Classifier inner ] #############
     # The loop parameter for the classifier inner parameter must be restricted when only 1 classifier in loop
@@ -248,7 +248,6 @@ def controlPanel_admin(username):
         # GVal.initLoopPARA(3506, [])
         # GVal.initLoopPARA(3507, [])
 
-
     ###########################################
 
     ###########################################
@@ -260,13 +259,13 @@ def controlPanel_admin(username):
     # [data_prepare_flag] to control whether read the raw data and create the label and feature.
     # 1 - Read raw data, and create feature and label according to the raw data
     # 0 - Donot read raw data, just load the last time processed data(feature and label), this saved much time when raw data is big and no need to create label and feature again.
-    FLAG['data_prepare_flag'] = 0
+    FLAG['data_prepare_flag'] = 1
     # [firstTimeConstruction], when many loops are processing in one execution, the construcion of the label and feature matrix should be done only one time. This is initializing this.
     GVal.setPARA('firstTimeConstruction', FLAG['data_prepare_flag'])
 
     # [save_flag] to save the created label and feature in this processing. No matter these label and feature and created or loaded
     # 1- save  0 -not save
-    FLAG['save_flag'] = 0
+    FLAG['save_flag'] = 1
     # [plotting_flag] to control whether to plot the result. 1 - plot, 0 -not plot
     # This flag will soon be deprecated since there will be various plotting tasks and more detailed flag will then be applied.
     FLAG['plotting_flag'] = 1
@@ -371,9 +370,9 @@ def controlPanel_admin(username):
     GVal.setDVPARA('split_type_para', 0.25)
     # [random_seed_PARA], a random seed to get different random series.
     # Later this parameter will be improved and applied an overall random seed. Not only the dataset separation.
-    GVal.setPARA('random_seed_PARA', np.arange(30,41,1))
+    GVal.setPARA('random_seed_PARA', np.arange(43, 56, 1))
     # Calulate the N fold into one res by 'mean ' /  'median'
-    GVal.setPARA('resCalMethod_PARA','median')
+    GVal.setPARA('resCalMethod_PARA', 'median')
     ##########################################
 
     ##########################################
@@ -414,8 +413,8 @@ def controlPanel_admin(username):
 
     # Select several features from the online feature file
     # [online_fea_selectindex_PARA], defined by an array, it contains the colomn number of each feature in the created feature matrix
-    GVal.setPARA('online_fea_selectindex_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]))
-    # GVal.setPARA('online_fea_selectindex_PARA', np.array([16, 17]))
+    # GVal.setPARA('online_fea_selectindex_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]))
+    GVal.setPARA('online_fea_selectindex_PARA', np.array([11, 12, 16, 17]))
 
     # [online_fea_name_PARA] is the name for all those features in the created feature matrix. Breif info is attached in the comments below.
     GVal.setPARA('online_fea_name_PARA', [['眨眼时间'], ['眨眼速度'], ['perclos_first'], ['闭眼时间'], ['完全闭合时间'],
@@ -423,7 +422,7 @@ def controlPanel_admin(username):
                                           ['perclos_second'], ['perclos_third'], ['perclos_fourth'], ['sem'], ['sem重心频率'],
                                           ['快速眼电相对功率'], ['sem合成特征'], ['眨眼合成特征'], ['综合特征'],
                                           ['状态指数'], ['噪声标记'], ['标准差'], ['眨眼数'], ['眨眼幅值'], ['眨眼极值差'],
-                                          [' '], [' '],
+                                          ['Add1'], ['Add2'], ['Add3'], ['Add4'], ['Add5']
                                           ])
     # 0 -- 12 维 对应的分别是：眨眼时间、眨眼速度、perclos_first、闭眼时间、完全闭合时间、
     #                                           睁眼时间、闭眼平均速度、睁眼平均速度、闭眼最大速度、睁眼最大速度、
@@ -444,12 +443,12 @@ def controlPanel_admin(username):
     #                                         6--空载(标准差过小4) ,
     #                                         7--严重漂移
     # 21 -- 24 维 对应的分别是：标准差，眨眼数  眨眼幅值  眨眼极值差
-
+    # 25 -- 29 维 拓展备用维度
     # [feature_index_PARA], serial number for the online_fea_selectindex.
     GVal.setPARA('feature_index_PARA', np.arange(0, len(GVal.getPARA('online_fea_selectindex_PARA'))))  # THINK TO RETIRE THIS LINE
 
     # [screen_fea_list_PARA] is the colomn number for features, which used as the result plotting.
-    GVal.setPARA('screen_fea_list_PARA', np.array([16, 17]))
+    GVal.setPARA('screen_fea_list_PARA', np.array([11, 12, 16, 17]))
     ##########################################
     return FLAG
 
@@ -470,7 +469,10 @@ def initializationProcess():
         # When working with command: python3 NFDA_Launcher.py (run in master local)
         GVal.setPARA('prefix_PARA', localprefix)
         username = 'GaoMY'
-        os.remove(localprefix + 'GaoMY/tlog.txt')
+        try:
+            os.remove(localprefix + 'GaoMY/EXECUTION/NFDA/code/tlog.txt')
+        except FileNotFoundError:
+            print(' ')
     return GVal.getPARA('prefix_PARA'), username
 
 

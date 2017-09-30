@@ -15,6 +15,7 @@ import pickle
 import time
 from time import clock
 
+import toolkitJ
 from toolkitJ import cell2dmatlab_jsp
 from toolkitJ import Logger_J
 
@@ -92,6 +93,7 @@ def labelReading(select_index, data_file, path):
         print(recordname)
         # Loading of labels.
         label_file = glob.glob(path['label_path'] + recordname + '*.txt')
+        # print(path['label_path'] + recordname + '*.txt')
         if not label_file:
             # return if no file in local database
             lplb_count1 += 1
@@ -169,7 +171,6 @@ def featurePreparation(select_index, online_fea_selectindex, noise_label_index, 
 def mainProcesser(process_code):
     # The decoder translate the process_code into different parameter to be set.
     select_index, classifier_num = processCodeDecoder(process_code)
-
     # Prepare some information
     online_fea_selectindex = GVal.getPARA('online_fea_selectindex_PARA')
     noise_label_index = GVal.getPARA('noise_label_index_PARA')
@@ -301,7 +302,7 @@ def mainProcesser(process_code):
 
         if FLAG['plotting_flag']:
             FRAP = res_temp[0][3]
-            # resultPlotting(FRAP, process_code)
+            resultPlotting(FRAP, process_code)
         else:
             print('### No plotting, exit feature plotting...')
 
@@ -312,17 +313,20 @@ def mainProcesser(process_code):
 
 if __name__ == "__main__":
     start = clock()
-
     # Gain the path prefix, this is added to suit up different processing environment.
-    path_prefix, username = initializationProcess()
-
-    sys.stdout = Logger_J(path_prefix + 'GaoMY/tlog.txt')
+    path_prefix, username_raw = initializationProcess()
+    if username_raw[-4:] == '4BEA':
+        username = username_raw[:-5]
+    else:
+        username = username_raw
+    # print(path_prefix + username + '/EXECUTION/NFDA/code/tlog.txt')
+    sys.stdout = Logger_J(path_prefix + username + '/EXECUTION/NFDA/code/tlog.txt')
 
     print('### Log starting!')
     print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     # Define the basic path.
     path = {
-        'data_path': (path_prefix + 'public/labcompute/BK_OLD_EEG_RawData/'),
+        'data_path': (path_prefix + 'public/EEG_RawData/'),
         'label_path': (path_prefix + 'public/backend_data/Label/'),
         'online_fea_path': (path_prefix + 'public/backend_data/online_new/'),
         'parent_path': (path_prefix + username + '/EXECUTION/NFDA/code/')
@@ -344,6 +348,7 @@ if __name__ == "__main__":
 
     # RawData folder list reading.
     data_file = sorted(os.listdir(path['data_path']))
+
     # Processing the Control Panel! All the important configuration are pre-defined in control panel.
     # Refer the file controlPanel_NFDA_J.py for more details.
     # [FLAG] is a flag controller, to switch on/off several processing procedure.

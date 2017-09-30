@@ -58,6 +58,7 @@ def featurePlotting(label_all, online_fea_all, processCode):
 
 
 def resultPlotting(FRAP, processCode):
+    ftsize = 20
     path = GVal.getPARA('path_PARA')
     X_tra = GVal.getPARA('X_tra_res_PARA')
     X_val = GVal.getPARA('X_val_res_PARA')
@@ -112,8 +113,8 @@ def resultPlotting(FRAP, processCode):
             # plt.scatter(X_tra[nega_index_tra, fea1], X_tra[nega_index_tra, fea2], marker=markerlist1[4], color=colorlist3[0], label='Nega', linewidths=0.1)
             plt.scatter(X_tra[posi_index_tra, fea1], X_tra[posi_index_tra, fea2], marker=markerlist1[4], color=colorlist3[1], label='Posi', linewidths=0.1)
             plt.legend(loc='best', prop=zhfont)
-            plt.xlabel(online_fea_name[fea1_num], FontProperties=zhfont)
-            plt.ylabel(online_fea_name[fea2_num], FontProperties=zhfont)
+            plt.xlabel(online_fea_name[fea1_num], FontProperties=zhfont, Fontsize=ftsize)
+            plt.ylabel(online_fea_name[fea2_num], FontProperties=zhfont, Fontsize=ftsize)
             plt.title('Training Set \n' +
                       '[0]-' + str(len(p0_index_tra)) + ' || [1]-' + str(len(p1_index_tra)) + ' || [2]-' + str(len(p2_index_tra)) + ' || [3]-' + str(len(p3_index_tra)) + '\n' +
                       GVal.getPARA('kick_off_no1_detail')[int(GVal.getPARA('kick_off_no1_PARA'))]
