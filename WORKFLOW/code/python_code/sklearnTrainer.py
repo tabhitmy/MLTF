@@ -12,6 +12,9 @@ mpl.use('Agg')
 
 import pprint
 
+from sklearn.externals.six import StringIO
+# import pydot
+
 import sklearn.model_selection as skmdls
 import sklearn.ensemble as skemb
 import sklearn.tree as sktree
@@ -191,15 +194,20 @@ def decisionTree(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
                                         random_state=dVM[3107][2])
 
     clf.fit(X_tra, y_tra, sample_weight=weights)
+    path = GVal.getPARA('path_PARA')
+    with open(path['fig_path'] + 'dtclf.dot', 'w') as f:
+        f = sktree.export_graphviz(clf, out_file=f, class_names=['0', '1'])
 
+    # sktree.export_graphviz(clf, out_file=path['fig_path'] + 'tree.dot')
+    # exit()
     return processLearning(clf, X_tra, y_tra, X_val, y_val)
 
-
 ##
+
+
 def randomForest(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
-
     y_tra, X_tra, y_val, X_val, weights = dataRegulationSKL(y_tra, X_tra, y_val, X_val, index_no)
-
+    # http://blog.csdn.net/xuxiatian/article/details/54410086
     clf = skemb.RandomForestClassifier(n_estimators=dVM[3200][2],
                                        criterion=dVM[3201][2], max_features=dVM[3202][2],
                                        max_depth=dVM[3203][2], min_samples_split=dVM[3204][2],
@@ -207,6 +215,15 @@ def randomForest(X_tra, y_tra, X_val, y_val, index_no, classifier_num):
                                        random_state=dVM[3213][2])
     # GVal.show('dVM_PARA')
     clf.fit(X_tra, y_tra, sample_weight=weights)
+    # print(clf.get_params())
+    # print(clf)
+    path = GVal.getPARA('path_PARA')
+    i_tree = 0
+    for tree_in_forest in clf.estimators_:
+        with open(path['fig_path'] + '/RF/tree_' + str(i_tree) + '.dot', 'w') as my_file:
+            my_file = sktree.export_graphviz(tree_in_forest, out_file=my_file, class_names=['0', '1'])
+        i_tree = i_tree + 1
+
     return processLearning(clf, X_tra, y_tra, X_val, y_val)
 
 
@@ -285,7 +302,7 @@ def sklearnTrainer(classifier_num, X_train_raw, Y_train_raw, X_valid_raw, Y_vali
         34: [voting, 'Voter'],
         35: [gradboost, 'Gradient Tree Boosting']
     }
-    GVal.setPARA('classifier_list_PARA', classifier_list)
+    GVal.setPARA('classifier_list_cache', classifier_list)
     # classifier serial code: [[model], [training score], [predicting rate]]
     clf_cache = {
         21: cell2dmatlab_jsp([1], 1, []),
@@ -318,4 +335,8 @@ def sklearnTrainer(classifier_num, X_train_raw, Y_train_raw, X_valid_raw, Y_vali
     clf, score, FRAP = classifier_list[int(str(classifier_num)[0:2])][0](X, y, X_valid, y_valid, index_no, classifier_num)
     clf_cache[classifier_num] = clf
     # return clf,score,FRAP
-    return classifier_list[classifier_num][1], score, FRAP
+    clf_info = cell2dmatlab_jsp([3], 1, [])
+    clf_info[0] = classifier_num
+    clf_info[1] = classifier_list[classifier_num][1]
+    clf_info[2] = clf
+    return clf_info, score, FRAP

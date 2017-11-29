@@ -29,7 +29,7 @@ dVM[2111] = ['max_iter']  # n/a
 dVM[2300] = ['solver', ['svd', 'lsqr', 'eigen'], 'svd']
 dVM[2301] = ['shrinkage']  # n/a only work with lsqr or eigen in 2300
 dVM[2302] = ['priors']  # n/a
-dVM[2303] = ['n_components', np.arange(10), 2]  # number of components for dimensionality reduction
+dVM[2303] = ['n_components', np.arange(10), 4]  # number of components for dimensionality reduction
 dVM[2304] = ['store_covariance']  # n/a for svd only
 dVM[2305] = ['tol', np.arange(5e-5, 15e-5, 1e-5), 1e-4]  # tolerance for the stopping criteria
 
@@ -75,13 +75,13 @@ dVM[3112] = ['presort']  # n/a
 
 
 #  32 -- Random Forest
-dVM[3200] = ['n_estimators', np.arange(5, 15, 1), 10]
+dVM[3200] = ['n_estimators', np.arange(5, 200, 1), 15]
 dVM[3201] = ['criterion', ['gini', 'entropy'], 'gini']
-dVM[3202] = ['max_features', np.arange(2, 10, 1), 2]  # other possible  'sqrt','log2'
-dVM[3203] = ['max_depth', np.arange(2, 10, 1), 5]
-dVM[3204] = ['min_samples_split', np.arange(2, 100, 10), 2]
-dVM[3205] = ['min_samples_leaf', np.arange(1, 5, 1), 1]
-dVM[3206] = ['min_weight_fraction_leaf', np.arange(0, 0.5, 0.1), 0]
+dVM[3202] = ['max_features', np.arange(2, 18, 1), 10]  # other possible  'sqrt','log2'
+dVM[3203] = ['max_depth', np.arange(2, 20, 1), 4]
+dVM[3204] = ['min_samples_split', np.arange(2, 100, 1), 15]
+dVM[3205] = ['min_samples_leaf', np.arange(1, 100, 1), 10]
+dVM[3206] = ['min_weight_fraction_leaf', np.arange(0, 0.5, 0.2), 0.1]
 dVM[3207] = ['max_leaf_nodes']  # n/a
 dVM[3208] = ['min_impurity_decrease']  # n/a
 dVM[3209] = ['bootstrap', [False, True], True]  # n/a
@@ -148,14 +148,17 @@ def controlPanel_admin(username):
         'recording_index_list_PARA',
         [
             # np.array([21])
-            np.arange(1, 137, 1),
-            # np.arange(137, 199, 1)
+            # np.arange(1, 137, 1),
+            np.arange(138, 200, 1)
+            # np.arange(200, 211, 1)
+            # np.arange(123, 177, 1)
+            #
             # np.arange(1, 7, 1)
             # np.arange(147, 155, 1)
 
         ])
     # Temporial Code later will be deprecated.
-    if 136 in GVal.getPARA('recording_index_list_PARA')[0]:
+    if 122 in GVal.getPARA('recording_index_list_PARA')[0]:
         GVal.setPARA('recordname', 'Experiment')
     else:
         GVal.setPARA('recordname', 'Realistic')
@@ -203,10 +206,11 @@ def controlPanel_admin(username):
             # 21,
             # 24,
             # 25,
-            23
-            # 30,
+            # 23,
+            # 23,
             # 27
-            # 32,
+            32
+
             # 23
             # 31
             # 23
@@ -216,18 +220,22 @@ def controlPanel_admin(username):
         ])
 
     ###########################################
-
+    GVal.setDVPARA('stMode', [1])
     ###########################################
     ### [ Loop Parameters, others ] ##################
     # Add any para you want to loop. You can loop many parameters together.
     # The loop mechanism is boosted by GVal.initLoopPARA, add the exact name of any parameters in this control panel, then set a coresponding array, in which all the values will be import as looping parameters.
 
     # iter , plain
+    # GVal.setPARA('codepoolCreator', 'iter')
     GVal.setPARA('codepoolCreator', 'plain')
+    # GVal.initLoopPARA('Nr_Frame_PARA', np.arange(10))
 
     # GVal.initLoopPARA('noconfident_frame_process_PARA',  np.arange(6))
-    # GVal.initLoopPARA('data_balance_para_PARA', np.arange(0.01, 0.99, 0.04))
-    # GVal.initLoopPARA('split_type_para', np.arange(0.01, 0.99, 0.04))
+    # GVal.initLoopPARA('data_balance_para_PARA', np.arange(0.01, 0.99, 0.01))
+    # GVal.initLoopPARA('split_type_para', np.arange(0.01, 0.99, 0.01))
+
+    # GVal.initLoopPARA('weights_on_PARA',)
 
     # GVal.initLoopPARA('kick_off_no1_PARA', [0, 1, 5, 7])
     ###########################################
@@ -240,12 +248,14 @@ def controlPanel_admin(username):
         # GVal.initLoopPARA(2701, [0.7, 0.8, 0.9, 1, 1.1, 1.2])
 
         # GVal.initLoopPARA(3303, [])
-        # GVal.initLoopPARA(3501, [])
-        # GVal.initLoopPARA(3502, [])
-        # GVal.initLoopPARA(3503, [])
-        # GVal.initLoopPARA(3504, [])
-        # GVal.initLoopPARA(3505, [])
-        # GVal.initLoopPARA(3506, [])
+
+        # GVal.initLoopPARA(3200, [])
+        # # # # GVal.initLoopPARA(3201, [])
+        # GVal.initLoopPARA(3202, [])
+        # GVal.initLoopPARA(3203, [])
+        # GVal.initLoopPARA(3204, [])
+        # GVal.initLoopPARA(3205, [])
+        # GVal.initLoopPARA(3206, [])
         # GVal.initLoopPARA(3507, [])
 
     ###########################################
@@ -259,16 +269,20 @@ def controlPanel_admin(username):
     # [data_prepare_flag] to control whether read the raw data and create the label and feature.
     # 1 - Read raw data, and create feature and label according to the raw data
     # 0 - Donot read raw data, just load the last time processed data(feature and label), this saved much time when raw data is big and no need to create label and feature again.
-    FLAG['data_prepare_flag'] = 1
+    FLAG['data_prepare_flag'] = 0
     # [firstTimeConstruction], when many loops are processing in one execution, the construcion of the label and feature matrix should be done only one time. This is initializing this.
     GVal.setPARA('firstTimeConstruction', FLAG['data_prepare_flag'])
 
     # [save_flag] to save the created label and feature in this processing. No matter these label and feature and created or loaded
     # 1- save  0 -not save
-    FLAG['save_flag'] = 1
+    FLAG['save_flag'] = 0
     # [plotting_flag] to control whether to plot the result. 1 - plot, 0 -not plot
     # This flag will soon be deprecated since there will be various plotting tasks and more detailed flag will then be applied.
-    FLAG['plotting_flag'] = 1
+    FLAG['hist_plotting_flag'] = 0  # Overall outlook for all the features.With Seaborn
+    FLAG['fea_plotting_flag'] = 0
+    FLAG['plotting_flag'] = 1  # FRAP related
+    FLAG['pairDristributionPlotting_flag'] = 0  # with seaborn
+    FLAG['resultDristributionPlotting_flag'] = 0  # self design, with classification result.
     ###########################################
 
     ###########################################
@@ -276,16 +290,16 @@ def controlPanel_admin(username):
     # Static parameter #1 is the weights setting. The weight has its own coressponding label type. Detail below:
 
     # [weights_on_PARA] is a switcher for using(1) or not using(0) the weights.
-    GVal.setPARA('weights_on_PARA', 0)
+    GVal.setPARA('weights_on_PARA', 1)
 
    # Weight_list, the key is referring the label num (0 -nofatigue, 1 -7gradefatigue ... )
     # And the corresponding value for each key is the weight for this certain class
     GVal.setPARA(
         'weight_list_PARA',  {
-            0: 0.8,
-            1: 1,
-            2: 2,
-            3: 3
+            0: 0.5,
+            1: 0.5,
+            2: 4,
+            3: 9
         })
     ###########################################
 
@@ -304,7 +318,7 @@ def controlPanel_admin(username):
     # [1] means set the label '1' as positive label
 
     # [kick_off_no1_PARA] is the main switcher, the parameter can be set from 0 - 8
-    GVal.setPARA('kick_off_no1_PARA', 0)
+    GVal.setPARA('kick_off_no1_PARA', 7)
     GVal.setDVPARA('kick_off_no1_PARA', 0)
     # Recording the processing details for each different methods.
     kick_off_no1_detail = {
@@ -329,6 +343,11 @@ def controlPanel_admin(username):
     # Main Switcher to do the label processing. 1 - do, 0 - not do
     FLAG['label_process_flag'] = 1
 
+    # The dilation of the noise frame label to against the distortion of features just several frames after the Re-initialization (When more than 3 continuous noise frame).
+    FLAG['noise_frame_dilation'] = 1
+    GVal.setPARA('Nr_Frame_PARA', 5)
+    GVal.setDVPARA('Nr_Frame_PARA', 3)
+
     # [noconfident_frame_process_PARA], set as 0-5, details in the comments below.
     GVal.setPARA('noconfident_frame_process_PARA', 5)
     GVal.setDVPARA('noconfident_frame_process_PARA', 5)
@@ -350,6 +369,7 @@ def controlPanel_admin(username):
     # 20 - noise frame info
     # 22 - noblink frame info
     GVal.setPARA('noise_label_index_PARA', np.array([20, 22]))
+    # GVal.setPARA('noise_label_index_PARA', np.array([25, 27]))
     #########################################
 
     ##########################################
@@ -370,7 +390,7 @@ def controlPanel_admin(username):
     GVal.setDVPARA('split_type_para', 0.25)
     # [random_seed_PARA], a random seed to get different random series.
     # Later this parameter will be improved and applied an overall random seed. Not only the dataset separation.
-    GVal.setPARA('random_seed_PARA', np.arange(43, 56, 1))
+    GVal.setPARA('random_seed_PARA', np.arange(200, 250, 100))
     # Calulate the N fold into one res by 'mean ' /  'median'
     GVal.setPARA('resCalMethod_PARA', 'median')
     ##########################################
@@ -388,7 +408,7 @@ def controlPanel_admin(username):
     # 2 - normalPCA
 
     # [nComponent_PARA] is the retained components number, should be smaller than total number of label
-    GVal.setPARA('nComponent_PARA', 10)
+    GVal.setPARA('nComponent_PARA', 25)
     ##########################################
     ##########################################
 
@@ -403,7 +423,7 @@ def controlPanel_admin(username):
     # 1 - Down sampling the negative class (para is the [0,1] float, indicating the percentage of retain)
 
     # [data_balance_para_PARA], for each data balance method above, there is a corresponding parameters as input,its range define in comments above
-    GVal.setPARA('data_balance_para_PARA', 0.25)
+    GVal.setPARA('data_balance_para_PARA', 0.35)
     GVal.setDVPARA('data_balance_para_PARA', 0.25)
     ##########################################
 
@@ -413,17 +433,34 @@ def controlPanel_admin(username):
 
     # Select several features from the online feature file
     # [online_fea_selectindex_PARA], defined by an array, it contains the colomn number of each feature in the created feature matrix
-    # GVal.setPARA('online_fea_selectindex_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]))
-    GVal.setPARA('online_fea_selectindex_PARA', np.array([11, 12, 16, 17]))
+    GVal.setPARA('online_fea_selectindex_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]))
+    # GVal.setPARA('online_fea_selectindex_PARA', np.array([11, 12, 16, 17]))
 
     # [online_fea_name_PARA] is the name for all those features in the created feature matrix. Breif info is attached in the comments below.
+    # GVal.setPARA('online_fea_name_PARA', [['眨眼时间'], ['眨眼速度'], ['perclos_first'], ['闭眼时间'], ['完全闭合时间'],
+    #                                       ['睁眼时间'], ['闭眼平均速度'], ['睁眼平均速度'], ['闭眼最大速度'], ['睁眼最大速度'],
+    #                                       ['perclos_second'], ['perclos_third'], ['Median D1'], ['sem'],
+    #                                       ['sem重心频率'], ['快速眼电相对功率'], ['sem合成特征'], ['眨眼合成特征'], ['综合特征'],
+    #                                       ['状态指数'], ['噪声标记'], ['标准差'], ['眨眼数'], ['眨眼幅值'], ['眨眼极值差']
+    #                                       ])
+
     GVal.setPARA('online_fea_name_PARA', [['眨眼时间'], ['眨眼速度'], ['perclos_first'], ['闭眼时间'], ['完全闭合时间'],
                                           ['睁眼时间'], ['闭眼平均速度'], ['睁眼平均速度'], ['闭眼最大速度'], ['睁眼最大速度'],
-                                          ['perclos_second'], ['perclos_third'], ['perclos_fourth'], ['sem'], ['sem重心频率'],
-                                          ['快速眼电相对功率'], ['sem合成特征'], ['眨眼合成特征'], ['综合特征'],
+                                          ['perclos_second'], ['perclos_third'], ['perclos_forth'],
+                                          ['sem'], ['sem重心频率'], ['快速眼电相对功率'], ['sem合成特征'], ['眨眼合成特征'], ['综合特征'],
                                           ['状态指数'], ['噪声标记'], ['标准差'], ['眨眼数'], ['眨眼幅值'], ['眨眼极值差'],
-                                          ['Add1'], ['Add2'], ['Add3'], ['Add4'], ['Add5']
+                                          ['D2_clos'], ['D2_open'], ['D1_clos'], ['D1_open']
                                           ])
+
+    GVal.setPARA('online_fea_engname_PARA', [['blink duration'], ['blink speed'], ['perclos_first'], ['close duration'], ['totally close duration'],
+                                             ['open duration'], ['mean close speed'], ['mean open speed'], ['max close speed'], ['max open speed'],
+                                             ['perclos_second'], ['perclos_third'], ['perclos_forth'],
+                                             ['sem'], ['sem centroid freq'], ['fem'], ['sem synth'], ['blink synth'], ['Generally synth'],
+                                             ['状态指数'], ['噪声标记'], ['标准差'], ['眨眼数'], ['眨眼幅值'], ['眨眼极值差'],
+                                             ['D2_clos'], ['D2_open'], ['D1_clos'], ['D1_open']
+                                             ])
+    # ['D1'], ['D2'], ['Add3'], ['Add4'], ['Add5'],
+
     # 0 -- 12 维 对应的分别是：眨眼时间、眨眼速度、perclos_first、闭眼时间、完全闭合时间、
     #                                           睁眼时间、闭眼平均速度、睁眼平均速度、闭眼最大速度、睁眼最大速度、
     #                                           perclos_second、perclos_third、perclos_fourth
@@ -448,7 +485,8 @@ def controlPanel_admin(username):
     GVal.setPARA('feature_index_PARA', np.arange(0, len(GVal.getPARA('online_fea_selectindex_PARA'))))  # THINK TO RETIRE THIS LINE
 
     # [screen_fea_list_PARA] is the colomn number for features, which used as the result plotting.
-    GVal.setPARA('screen_fea_list_PARA', np.array([11, 12, 16, 17]))
+    GVal.setPARA('screen_fea_list_PARA', np.array([16, 17]))
+    GVal.setPARA('hist_fea_list_PARA', np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]))
     ##########################################
     return FLAG
 
@@ -574,6 +612,7 @@ def processCodeEncoder():
     dVPARA_count = cell2dmatlab_jsp([row_dV, colomn_dV + 1], 2, 0)
     dVPARA_index = cell2dmatlab_jsp([colomn_dV], 1, [])
     dVPARA_value = cell2dmatlab_jsp([colomn_dV], 1, [])
+
     for line_dV in range(row_dV):
         for col_dV in range(colomn_dV):
             if str2num(loopPARA_codepool[line_dV][col_dV]) == dVPARA_cache[col_dV]:
@@ -600,6 +639,7 @@ def processCodeEncoder():
 
     # Important processCode Para 2. Convey into decoder
     GVal.setPARA('loopPARA_codepool_PARA', loopPARA_codepool)
+
     print('### Loop Para Pool Size: [' + str(loopPARA_totalsize) + ', ' + str(loopPARA_amount) + '] ([Total Loop,Loop Parameter amount])')
 
     # Code rule: [seal bit set 1](11)[loopParaSerialCode](10-7)[loopParaAmount](6,5)[indexlistSerialNum](4,3)[ClassifierList](2-0)
@@ -612,6 +652,7 @@ def processCodeEncoder():
                                 1e7 * loopPARA_serialnum +
                                 1e11 * 1)
                 process_code_pack.append(code_temp)
+    print(process_code_pack)
 
     return process_code_pack
 
@@ -664,7 +705,10 @@ def plainCodePool(nlevel, dims, temp, h, y):
     LP_nc = GVal.getPARA('loopPARA_namecache_PARA')
     dV = cell2dmatlab_jsp([len(LP_nc)], 1, [])
     for n in range(len(LP_nc)):
-        dV[n] = GVal.getDVPARA(LP_nc[n][0])
+        if type(LP_nc[n][0]) == int:
+            dV[n] = dVM[LP_nc[n][0]][2]
+        else:
+            dV[n] = GVal.getDVPARA(LP_nc[n][0])
 
     for i in range(nlevel):
         for j in range(dims[i]):

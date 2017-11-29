@@ -6,9 +6,14 @@ import matplotlib as mpl
 from matplotlib.font_manager import FontProperties
 zhfont = FontProperties(fname="/usr/share/fonts/cjkuni-ukai/ukai.ttc")  # 图片显示中文字体
 mpl.use('Agg')
+mpl.get_cachedir()
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
 
+import scipy.io as sio
+
+import pandas as pd
+import seaborn as sns
 import GVal
 from toolkitJ import cell2dmatlab_jsp
 import copy
@@ -72,11 +77,13 @@ def resultPlotting(FRAP, processCode):
     p1_index_tra = np.nonzero(y_tra == 1)[0]
     p2_index_tra = np.nonzero(y_tra == 2)[0]
     p3_index_tra = np.nonzero(y_tra == 3)[0]
+    p23_index_tra = np.nonzero(y_tra > 1)[0]
 
     p0_index_val = np.nonzero(y_val == 0)[0]
     p1_index_val = np.nonzero(y_val == 1)[0]
     p2_index_val = np.nonzero(y_val == 2)[0]
     p3_index_val = np.nonzero(y_val == 3)[0]
+    p23_index_val = np.nonzero(y_val > 1)[0]
 
     nega_index_tra = np.nonzero(Z_tra == 0)[0]
     posi_index_tra = np.nonzero(Z_tra == 1)[0]
@@ -101,6 +108,7 @@ def resultPlotting(FRAP, processCode):
             fea2 = np.nonzero(online_fea_selectindex == fea2_num)[0][0]
             figcode = int(1e13 * pic_num + processCode)
             h = plt.figure(num=figcode, figsize=(20, 9.3))
+
             # Trainning set
 
             plt.subplot(121)
@@ -137,13 +145,121 @@ def resultPlotting(FRAP, processCode):
                       '[0]-' + str(len(p0_index_val)) + ' || [1]-' + str(len(p1_index_val)) + ' || [2]-' + str(len(p2_index_val)) + ' || [3]-' + str(len(p3_index_val)) + '\n' +
                       '[ P: ' + str(round(FRAP[0], 4)) + ' || A: ' + str(round(FRAP[1], 4)) + ' || R: ' + str(round(FRAP[2], 4)) + ' || MA: ' + str(round(FRAP[3], 4)) + ' || FA: ' + str(round(FRAP[4], 4)) + ' || F1: ' + str(round(FRAP[5], 4)) + ' || F' + str(GVal.getPARA('beta_PARA')) + ': ' + str(round(FRAP[6], 4))
                       )
+
+    #         plt.subplot(223)
+    #         plt.scatter(X_val[p0_index_val, fea1], X_val[p0_index_val, fea2], marker=markerlist1[0], color=colorlist2[0], label='label 0', linewidths=2)
+    #         plt.subplot(224)
+
             plt.show()
-            plt.savefig((path['fig_path'] + 'Figure' + str(figcode) + '.png'))
+            plt.savefig((path['fig_path'] + 'distriRes/Figure' + str(figcode) + '.png'))
             print('Picture' + str(figcode) + 'Saved!')
             plt.close(h)
             pic_num += 1
             # exit()
     return 0
+
+
+def pairDistPlotting(FRAP, processCode):
+    # print(sns.axes_style())
+    path = GVal.getPARA('path_PARA')
+    X_tra = GVal.getPARA('X_tra_res_PARA')
+    X_val = GVal.getPARA('X_val_res_PARA')
+
+    y_tra = GVal.getPARA('y_tra_res_PARA')
+    y_val = GVal.getPARA('y_val_res_PARA')
+
+    Z_tra = GVal.getPARA('Z_tra_res_PARA')
+    Z = GVal.getPARA('Z_res_PARA')
+
+    # p1_index_tra = np.nonzero(y_tra == 1)[0]
+    # y_tra = np.delete(y_tra, p1_index_tra, axis=0)
+    # X_tra = np.delete(X_tra, p1_index_tra, axis=0)
+    p2_index_tra = np.nonzero(y_tra == 2)[0]
+    y_tra[p2_index_tra] = 3
+
+    screen_fea_list = GVal.getPARA('screen_fea_list_PARA')
+    online_fea_name = GVal.getPARA('online_fea_engname_PARA')
+    online_fea_selectindex = GVal.getPARA('online_fea_selectindex_PARA')
+    lplb_count = 0
+    columndata = cell2dmatlab_jsp([1, len(screen_fea_list) + 1], 2, [])
+
+    for fea in screen_fea_list:
+        fea_serial = np.nonzero(online_fea_selectindex == fea)[0][0]
+        if lplb_count == 0:
+            pairdata = X_tra[:, fea_serial].reshape(-1, 1)
+        else:
+            pairdata = np.concatenate((pairdata, X_tra[:, fea_serial].reshape(-1, 1)), axis=1)
+        columndata[0][lplb_count] = online_fea_name[fea_serial][0]
+        lplb_count += 1
+
+    matcoef = np.corrcoef(pairdata.transpose())
+
+    sio.savemat(path['fig_path'] + 'matcoef.mat', {'matcoef': matcoef})
+    # print(matcoef)
+    for line in matcoef:
+        print(line)
+
+    # GVal.setPARA('')
+    pairdata = np.concatenate((pairdata, y_tra.reshape(-1, 1)), axis=1)
+    columndata[0][lplb_count] = 'Label'
+    pairdf = pd.DataFrame(pairdata, index=np.arange(len(y_tra)), columns=columndata)
+
+    figcode = int(1e13 * 9 + processCode)
+    h = plt.figure(num=figcode, figsize=(20, 9.3))
+    plt.subplot(211)
+    plt.title('Training set')
+    sns.set(font=zhfont.get_name())
+    g = sns.PairGrid(pairdf, vars=columndata[0][:-1], hue='Label', size=3)
+    g.map_diag(plt.hist, edgecolor="w", bins=25)
+    g.map_offdiag(plt.scatter, edgecolor="w", s=20)
+    plt.show()
+    plt.savefig((path['fig_path'] + 'FeaturePairPloting' + str(figcode) + '.png'))
+    print('Picture' + str(figcode) + 'Saved!')
+    plt.close(h)
+
+    return 0
+
+
+def cFRAPPlotting(res):
+    L_clf = len(GVal.getPARA('classifier_list_PARA'))
+    if L_clf < 2:
+        print('### Warning! No enough classifiers for cFRAP Plotting, skip it.')
+        return 0
+    ft_size = 18
+    path = GVal.getPARA('path_PARA')
+    beta = GVal.getPARA('beta_PARA')
+    y = np.zeros((5, L_clf))
+    xlbl = cell2dmatlab_jsp([L_clf], 1, [])
+    for i in range(L_clf):
+        xlbl[i] = res[i][1]
+        for j in range(3):
+            y[j][i] = res[i][3][j]
+        for jj in range(5, 7):
+            y[jj - 2][i] = res[i][3][jj]
+
+    ylbl = ['[P] Precision', '[A] Accuracy', '[R] Recall',  '[F1] score', ['[F' + str(beta) + '] score']]
+    colorlist = ['#0203e2', '#6ecb3c', '#fd3c06', '#000000', '#000000']
+    h = plt.figure(num=1, figsize=(17, 9.3))
+    ax = plt.gca()
+    port = 0.1
+    ytick = np.arange(0, 1, 0.1)
+    x = np.arange(1, L_clf + 1, 1)
+
+    for j in range(5):
+        delt = port * j + 0.01 * j
+        plt.bar(x - 0.3 + delt, y[j], width=port, facecolor=colorlist[j], label=ylbl[j])
+
+    plt.legend(loc=2, fontsize=ft_size)
+    ax.set_xticks(x)
+    ax.set_yticks(ytick)
+    ax.set_xticklabels(xlbl, fontproperties=zhfont, fontsize=ft_size)
+    ax.set_yticklabels(ytick, fontsize=ft_size)
+    plt.ylabel('scores', fontsize=ft_size)
+    plt.ylim(0, 1.05)
+    plt.grid()
+    plt.show()
+    plt.savefig((path['fig_path'] + 'cFRAP.png'))
+    print('Picture for ' + str(L_clf) + ' Various Classifers Saved!')
 
 
 def FRAPPlotting(res):
@@ -161,7 +277,7 @@ def FRAPPlotting(res):
     # FontSize
     ftsize = 20
     # color
-    colorlist = ['#0203e2', '#6ecb3c', '#fd3c06', '#000000', '#000000']
+    colorlist = ['#0203e2', '#6ecb3c', '#fd3c06', '#000000', '#929591']
     # marker
     markerlist = ['^', '.', 'v', '*', 'h']
     # linestyle
@@ -205,9 +321,9 @@ def FRAPPlotting(res):
         # legend.get_title().set_fontsize(fontsize=50)
         # h.legend(Fontsize=ftsize)
         if type(loopPARA_namecache[i][0]) == int:
-            xlabeltext = 'Classifier: [ ' + res[0][1] + ' ] | Parameter: [ ' + dVM[loopPARA_namecache[i][0]][0] + ' ]'
+            xlabeltext = 'Classifier: [ ' + res[0][1][1] + ' ] | Parameter: [ ' + dVM[loopPARA_namecache[i][0]][0] + ' ]'
         else:
-            xlabeltext = 'Classifier: [ ' + res[0][1] + ' ] | General Parameter: [ ' + loopPARA_namecache[i][0] + ' ]'
+            xlabeltext = 'Classifier: [ ' + res[0][1][1] + ' ] | General Parameter: [ ' + loopPARA_namecache[i][0] + ' ]'
         plt.xticks(xdata_rawraw_index, xdata_rawraw, rotation=0)
         plt.xlabel(xlabeltext, Fontsize=ftsize)
         plt.ylabel('FRAP Value', Fontsize=ftsize)

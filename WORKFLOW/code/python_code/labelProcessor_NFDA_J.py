@@ -2,11 +2,11 @@
 import numpy as np
 import matplotlib as mpl
 from matplotlib.font_manager import FontProperties
-zhfont = FontProperties(fname="/usr/share/fonts/cjkuni-ukai/ukai.ttc")  # 图片显示中文字体
+zhfont = FontProperties(fname="/usr/share/fonts/cjkuni-ukai/ukai.ttc")
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-
-
+import scipy.io as sio
+import copy
 import GVal
 
 
@@ -121,12 +121,29 @@ def processor7(X, Y, process_text):
         YY = Y
     return XX, YY
 
+
+def noiseFrameDilation(Y):
+    Nr_deprecate = GVal.getPARA('Nr_Frame_PARA')
+    NReinit = 3
+    noise_serial = copy.deepcopy(Y)
+    noise_serial_temp = copy.deepcopy(Y)
+    for iNR in range(NReinit - 1):
+        noise_serial_temp[iNR] = int(Y[iNR] == 0)
+    i_noise = NReinit - 1
+    while i_noise < len(noise_serial) - 1:
+        noise_serial_temp[i_noise] = int(Y[i_noise] == 0)
+        if sum(noise_serial_temp[i_noise - NReinit + 1:i_noise + 1]) == 0:
+            for j_noise in range(i_noise, min(i_noise + Nr_deprecate, len(Y) - 1)):
+                noise_serial[j_noise] = 9
+        i_noise += 1
+
+    return noise_serial
 #####################################
 #### [ MAIN ] ##########################
 #####################################
 
 
-def labelProcessor(X0, Y0):
+def labelProcessor(X0, Y0, X0V, Y0V):
     # labelProcessor is working on processing the noconfident frame problem
     # If a confidential information is attached with the label. This function can be applied to process.
     # There several process methods below. Please add any customized processor in any existed or new switcher and write the funtion above in this file
@@ -140,6 +157,13 @@ def labelProcessor(X0, Y0):
     # plt.plot(Y0[:, 1], '*', label='Confident')
     # plt.plot(Y0[:, 0], label='Class Label')
     # plt.legend()
+
+    FLAG = GVal.getPARA('FLAG_PARA')
+    if FLAG['noise_frame_dilation'] == 1:
+        YnFD = noiseFrameDilation(Y0[:, 2])
+        # Rewrite back into the label variable.
+        for iY in range(len(Y0[:, 2])):
+            Y0[iY, 2] = YnFD[iY]
 
     noconfident_frame_process_switcher = {
         0: [processor0, 'Do nothing'],
@@ -162,10 +186,13 @@ def labelProcessor(X0, Y0):
 
     noise_frame_process = GVal.getPARA('noise_frame_process_PARA')
 
-    print('### Current Data Size: [X]--' + str(X1.shape) + ' [Y]--' + str(Y1.shape))
+    print('### [ Training Set ] Current Data Size: [X]--' + str(X1.shape) + ' [Y]--' + str(Y1.shape))
     X_out, Y_out = noise_frame_process_switcher[noise_frame_process][0](X1, Y1, noise_frame_process_switcher[noise_frame_process][1])
-    print('### Current Data Size: [X]--' + str(X_out.shape) + ' [Y]--' + str(Y_out.shape))
+    print('### [ Training Set ] Current Data Size: [X]--' + str(X_out.shape) + ' [Y]--' + str(Y_out.shape))
 
+    print('### [ Validation Set ] Current Data Size: [X]--' + str(X0V.shape) + ' [Y]--' + str(Y0V.shape))
+    XV_out, YV_out = noise_frame_process_switcher[noise_frame_process][0](X0V, Y0V, noise_frame_process_switcher[noise_frame_process][1])
+    print('### [ Validation Set ] Current Data Size: [X]--' + str(XV_out.shape) + ' [Y]--' + str(YV_out.shape))
     # plt.subplot(212)
     # plt.plot(Y_out[:, 2], label='Noise Label ')
     # plt.plot(Y_out[:, 1], '*', label='Confident')
@@ -174,4 +201,4 @@ def labelProcessor(X0, Y0):
     # plt.show()
     # plt.savefig((path['work_path'] + 'AbnormalFrameProcess_' + str(process_code) + '.png'))
     # print('### The label processing result comprison figure is saved in workpath!')
-    return X_out, Y_out
+    return X_out, Y_out, XV_out, YV_out

@@ -50,7 +50,7 @@ if [ "$username" = "GaoMY" ]; then
     scp -r $localpath/python_code/*.py labcompute@192.168.0.71:$serverpath/python_code &
     scp -r $localpath/python_code/*.sh labcompute@192.168.0.71:$serverpath/python_code & 
     # Update the data to slave
-    scp -r  $localpath/python_code/data labcompute@192.168.0.$computeno:$serverpath/python_code/data &
+    scp -r  $localpath/python_code/data labcompute@192.168.0.$computeno:$serverpath/python_code/ &
 fi
 
 wait 
@@ -71,7 +71,7 @@ wait
 echo "########################################"
 echo "######### [Done! Fetching ...] #########"
 echo "########################################"
-scp -r labcompute@192.168.0.$computeno:$serverpath/python_code/fig $localpath/python_code/
+scp -r labcompute@192.168.0.$computeno:$serverpath/python_code/fig $localpath/python_code/fig
 scp -r labcompute@192.168.0.$computeno:$serverpath/tlog.txt $localpath/
 
 

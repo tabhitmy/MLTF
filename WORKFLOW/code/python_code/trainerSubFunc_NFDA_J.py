@@ -2,9 +2,16 @@
 import numpy as np
 import copy
 
+
+import matplotlib as mpl
+from matplotlib.font_manager import FontProperties
+zhfont = FontProperties(fname="/usr/share/fonts/cjkuni-ukai/ukai.ttc")  # 图片显示中文字体
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 from toolkitJ import cell2dmatlab_jsp
 import GVal
 
+import seaborn as sns
 
 ####################################################
 
@@ -53,7 +60,7 @@ def dataSetPreparation(feature_index, X_train_raw, Y_train_raw, X_valid_raw, Y_v
     return X, y, X_valid, y_valid, index_no
 
 
-def calculateFRAP(Z, y_val):
+def calculateFRAP(Z, y_val, screen):
     # F - Fscore
     # R - Recall
     # A - Accuracy
@@ -91,15 +98,15 @@ def calculateFRAP(Z, y_val):
     F = fScore(beta, P, R)
 
     FRAP = [P, A, R, MA, FA, F1, F]
-
-    print(('###[ P: ' + str(round(FRAP[0], 4)) +
-           ' || A: ' + str(round(FRAP[1], 4)) +
-           ' || R: ' + str(round(FRAP[2], 4)) +
-           ' || MA: ' + str(round(FRAP[3], 4)) +
-           ' || FA: ' + str(round(FRAP[4], 4)) +
-           ' || F1: ' + str(round(FRAP[5], 4)) +
-           ' || F' + str(beta) + ': ' + str(round(FRAP[6], 4)) + ']###'
-           ))
+    if screen == 1:
+        print(('###[ P: ' + str(round(FRAP[0], 4)) +
+               ' || A: ' + str(round(FRAP[1], 4)) +
+               ' || R: ' + str(round(FRAP[2], 4)) +
+               ' || MA: ' + str(round(FRAP[3], 4)) +
+               ' || FA: ' + str(round(FRAP[4], 4)) +
+               ' || F1: ' + str(round(FRAP[5], 4)) +
+               ' || F' + str(beta) + ': ' + str(round(FRAP[6], 4)) + ']###'
+               ))
     return FRAP
 
 
@@ -117,6 +124,7 @@ def dataRegulationSKL(y_tra_in, X_tra_in, y_val_in, X_val_in, index_no):
         weights = copy.deepcopy(y_tra_in)
         for key in weight_list.keys():
             weights[np.nonzero(weights == key)[0]] = weight_list[key]
+        print(weights)
     else:
         weights = np.ones(y_tra_in.shape)
 
@@ -155,17 +163,94 @@ def dataRegulationSKL(y_tra_in, X_tra_in, y_val_in, X_val_in, index_no):
     y_tra[np.nonzero(y_tra > 0)[0]] = 1
     y_val[np.nonzero(y_val > 0)[0]] = 1
 
-    # Checking code, retain for a while .
-    # print('X train')
-    # print(X_tra.shape)
-    # print('y train')
-    # print(y_tra.shape)
-    # print(max(y_tra), min(y_tra))
-    # print('X validation')
-    # print(X_val.shape)
-    # print('y validation')
-    # print(y_val.shape)
-    # print(max(y_val), min(y_val))
+    # Checking code, do not delete .
+    print('X train')
+    print(X_tra.shape)
+    print('y train')
+    print(y_tra.shape)
+    print(max(y_tra), min(y_tra))
+    print('X validation')
+    print(X_val.shape)
+    print('y validation')
+    print(y_val.shape)
+    print(max(y_val), min(y_val))
+
+    # print(len(np.nonzero(y_tra_res == 0)[0]))
+    # print(len(np.nonzero(y_tra_res == 1)[0]))
+    # print(len(np.nonzero(y_tra_res == 2)[0]))
+    # print(len(np.nonzero(y_tra_res == 3)[0]))
+
+    FLAG_temp = GVal.getPARA('FLAG_PARA')
+    pcode4fig = GVal.getPARA('process_code_PARA')
+    if FLAG_temp['hist_plotting_flag']:
+        ftsize = 16
+        hist_fea_list = GVal.getPARA('hist_fea_list_PARA')
+        path = GVal.getPARA('path_PARA')
+        nbins = 20
+        figcode = pcode4fig
+        h = plt.figure(num=figcode, figsize=(20, 30))
+        inu = 0
+        for ireal in hist_fea_list:
+            iserial = int(np.where(hist_fea_list == ireal)[0])
+            print(GVal.getPARA('online_fea_selectindex_PARA'))
+            inum = int(np.where(GVal.getPARA('online_fea_selectindex_PARA') == ireal)[0])
+            print('inu: ' + str(inu) + ' || ireal: ' + str(ireal) + '|| iserial: ' + str(iserial) + '|| inum: ' + str(inum))
+            x = 0.03
+            y = 0.89
+            a = -0.02
+            le = 0.19
+            lfig = 0.17
+            k = -0.085
+            kfig = 0.065
+
+            posx = [x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le,
+                    x, x + le, x + 2 * le, x + 3 * le, x + 4 * le]
+            posy = [y, y, y, y, y, y + k, y + k, y + k, y + k, y + k,
+                    y + 2 * k + a, y + 2 * k + a, y + 2 * k + a, y + 2 * k + a, y + 2 * k + a,
+                    y + 3 * k + a, y + 3 * k + a, y + 3 * k + a, y + 3 * k + a, y + 3 * k + a,
+                    y + 4 * k + 2 * a, y + 4 * k + 2 * a, y + 4 * k + 2 * a, y + 4 * k + 2 * a, y + 4 * k + 2 * a,
+                    y + 5 * k + 2 * a, y + 5 * k + 2 * a, y + 5 * k + 2 * a, y + 5 * k + 2 * a, y + 5 * k + 2 * a,
+                    y + 6 * k + 3 * a, y + 6 * k + 3 * a, y + 6 * k + 3 * a, y + 6 * k + 3 * a, y + 6 * k + 3 * a,
+                    y + 7 * k + 3 * a, y + 7 * k + 3 * a, y + 7 * k + 3 * a, y + 7 * k + 3 * a, y + 7 * k + 3 * a,
+                    y + 8 * k + 4 * a, y + 8 * k + 4 * a, y + 8 * k + 4 * a, y + 8 * k + 4 * a, y + 8 * k + 4 * a,
+                    y + 9 * k + 4 * a, y + 9 * k + 4 * a, y + 9 * k + 4 * a, y + 9 * k + 4 * a, y + 9 * k + 4 * a]
+            # print(len(posx))
+            # print(len(posy))
+
+            inum1 = int(10 * np.floor((inu) / 5) + (iserial) % 5)
+            # print(inu, inum1)
+            # print(posx[inum1], posy[inum1])
+            plt.axes([posx[inum1], posy[inum1], lfig, kfig])
+            sns.distplot(X_tra_res[np.nonzero(y_tra_res > 1)[0], inum], bins=nbins, rug=False, label='posi [23]')
+            sns.distplot(X_tra_res[np.nonzero(y_tra_res == 0)[0], inum], bins=nbins, rug=False, label='nega [0]')
+            sns.distplot(X_tra_res[np.nonzero(y_tra_res == 1)[0], inum], bins=nbins, rug=False, label='tranz [1]')
+            # plt.legend .....
+            plt.title('[ Feature No. ' + str(ireal) + ' ] Trainning Set ')
+            plt.legend()
+            inum2 = int(10 * np.floor((inu) / 5) + (iserial) % 5 + 5)
+            # print(inu, inum2)
+            plt.axes([posx[inum2], posy[inum2], lfig, kfig])
+            sns.distplot(X_val_res[np.nonzero(y_val_res > 1)[0], inum], bins=nbins, rug=False, label='posi[23]')
+            sns.distplot(X_val_res[np.nonzero(y_val_res == 0)[0], inum], bins=nbins, rug=False, label='nega[0]')
+            sns.distplot(X_val_res[np.nonzero(y_val_res == 1)[0], inum], bins=nbins, rug=False, label='tranz [1]')
+            # print(GVal.getPARA('online_fea_name_PARA')[i][0])
+            plt.title('[ ' + GVal.getPARA('online_fea_name_PARA')[ireal][0] + ' ] Testing Set ', fontproperties=zhfont, fontsize=ftsize)
+            if inu == 0:
+                plt.legend()
+            inu += 1
+        plt.show()
+        plt.savefig((path['fig_path'] + 'Histo_Fea_Pic' + str(figcode) + '.png'))
+        print('Histo Feature Picture' + str(figcode) + 'Saved!')
+    else:
+        print('### No hist feature plotting... Skip')
     return y_tra, X_tra, y_val, X_val, weights
 
 
@@ -257,7 +342,7 @@ def processLearning(mdl, X_tra, y_tra, X_val, y_val):
     # Z is the classification result with the current model (mdl,no matter what kind of classifier)
     Z = mdl.predict(X_val)
     score = mdl.score(X_tra, y_tra)
-    FRAP = calculateFRAP(Z, y_val)
+    FRAP = calculateFRAP(Z, y_val, 1)
 
     Z_tra = mdl.predict(X_tra)
     GVal.setPARA('Z_tra_res_PARA', Z_tra)

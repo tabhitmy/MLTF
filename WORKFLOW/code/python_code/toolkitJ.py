@@ -60,6 +60,11 @@ def cell2dmatlab_jsp(dims, n, init_value):
 ###################################################
 
 
+def listtranspose_J(X):
+    m, n = len(X), len(X[0])
+    return [[X[i][j] for i in range(m)] for j in range(n)]
+
+
 class Logger_J(object):
      # Automaticallly
 

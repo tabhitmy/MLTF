@@ -17,8 +17,15 @@ def tSNE(X, para):
 
 
 def normalPCA(X, para):
-    pca = skdecomp.PCA(n_components=para, svd_solver='arpack')
+    pca = skdecomp.PCA(n_components=para, svd_solver='auto', whiten=False)
     X_PCA = pca.fit_transform(X)
+    print('Components')
+    print(pca.components_)
+    print('PCA Explained Variance Ratio')
+    print(pca.explained_variance_ratio_)
+    print('PCA Singular Value')
+    # print(pca.singular_values_)
+    # exit()
     return X_PCA, pca
 
 

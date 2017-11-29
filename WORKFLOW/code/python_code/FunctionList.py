@@ -21,6 +21,7 @@ NFDALauncher.py
             train_test_constructor()
 
         labelProcessor()
+            noiseFrameDilation()
         featurePlotting()
         feaSelection()
         {
